@@ -1,0 +1,40 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public enum AbilityType
+{
+	DAMAGE = 0,
+	GUARD = 1,
+	DRAW = 2,
+	RECOVERY_COST = 3,
+	CREATE = 4,
+	ADD_DECK = 5,
+	HEAL = 6,
+	DISCARD = 7,
+	BOUNCE = 8,
+	ADVANCE_COUNT = 10,
+	SKILL_CHARGE = 12,
+	PP_BOOST = 13,
+	BUFF = 14,
+	SUMMON = 15,
+	ENABLE_ATTACK = 16,
+	DESTROY = 18,
+	TRANSFORM = 19,
+	ATTACH_PROPERTY = 23,
+	ATTACH_ABILITY = 24,
+	COPY_ABILITY = 25,
+	COST_CHANGE = 33,
+	COMMAND = 40,
+	SPIRAL_CHARGE = 41,
+	REDUCE_UPGRADE_COST = 42,
+	ADD_EXCHANGE_COUNT = 43,
+	ADD_CUSTOM_POWER = 44,
+	MINING = 45,
+	EVOLVE = 46,
+	INVOKE = 47,
+	CONSUME_PP = 48,
+	ATTACK = 49,
+	CHARGE = 50,
+	ADD_UNIQUE_COUNTER = 51,
+}

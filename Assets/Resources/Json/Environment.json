@@ -1,0 +1,48 @@
+[
+    {
+        "environmentId": "GrassLand",
+        "name": "草原",
+        "player": {
+            "maxHp": "5",
+            "firstTurnCost": "3",
+            "firstTurnDraw": "4",
+            "maxHandNumber": "10",
+            "turnStartDraw": "1",
+            "turnExchangeCount": "3"
+        },
+        "describe": "レベル1",
+        "rank1Enemy": [
+            "IronSpirit(Enemy)",
+            "Slime(Enemy)"
+        ],
+        "rank2Enemy": [
+            "AxeDwarf(Enemy)",
+            "RedGuard(Enemy)",
+            "SkeltonFighter(Enemy)"
+        ],
+        "rank3Enemy": [
+            "Minotaurous(Enemy)",
+            "RedSword(Enemy)"
+        ],
+        "rank4Enemy": [
+            "FireLord(Enemy)",
+            "Ptolemaios(Enemy)"
+        ],
+        "rank5Enemy": [
+            "HammerDwarf(Enemy)",
+            "Hellhound(Enemy)"
+        ],
+        "rank6Enemy": [
+            "Behemoth(Enemy)",
+            "Emperor(Enemy)"
+        ],
+        "rank7Enemy": [
+            "UndeadKing(Enemy)",
+            "Zodiac(Enemy)"
+        ],
+        "rank8Enemy": [],
+        "boss": "SilverGolem",
+        "bossTurn": 9,
+        "bonus": []
+    }
+]
