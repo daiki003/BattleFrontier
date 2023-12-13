@@ -7,11 +7,11 @@ using DG.Tweening;
 using System.Linq;
 using UnityEngine.Events;
 
-public class CardController : MonoBehaviour
+public class CardController
 {
+	public GameObject cardObject; // カードのオブジェクト
 	public CardView view; // カードの見た目の処理
 	public CardModel model; // カードのデータを処理
-	public CardMovement movement; //移動に関することを操作
 	public OnClick click;
 	public DropPlace drop;
 	private PlayerController player;
@@ -77,16 +77,18 @@ public class CardController : MonoBehaviour
 	}
 
 	// model,viewのリセット ------------------------------------------------------------------------------------------------------------------------------------------------
-	// カードを生成した時に呼ばれる関数
-	public virtual void Init(int number, Color color, int index)
+	public CardController(GameObject cardObject, int index)
 	{
 		this.index = index;
 
 		// Awakeでやっていたことをここで実行（非アクティブでデッキのカードを作成するので、Awakeが呼ばれないため）
-		view = GetComponent<CardView>();
-		movement = GetComponent<CardMovement>();
-		click = GetComponent<OnClick>();
-		drop = GetComponent<DropPlace>();
+		this.cardObject = cardObject; 
+		view = cardObject.GetComponent<CardView>();
+		var movement = cardObject.GetComponent<CardMovement>();
+		movement.card = this;
+		click = cardObject.GetComponent<OnClick>();
+		click.card = this;
+		drop = cardObject.GetComponent<DropPlace>();
 
 		if (GameManager.instance.isBattle)
 		{

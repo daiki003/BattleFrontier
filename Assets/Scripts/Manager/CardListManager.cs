@@ -88,7 +88,7 @@ public class CardListManager
 		Transform skillParent = isSkill ? mainPanel.cardList : mainPanel.invisibleArea;
 		foreach (CardController card in allCardList[selectingClass])
 		{
-			card.gameObject.transform.SetParent(cardParent);
+			card.cardObject.transform.SetParent(cardParent);
 		}
 		foreach (SkillPanelController skill in allSkillList[selectingClass])
 		{
@@ -182,7 +182,7 @@ public class CardListManager
 				Transform parent = pair.Key == category ? mainPanel.cardList : mainPanel.invisibleArea;
 				foreach (CardController card in pair.Value)
 				{
-					card.gameObject.transform.SetParent(parent);
+					card.cardObject.transform.SetParent(parent);
 				}
 			}
 		}

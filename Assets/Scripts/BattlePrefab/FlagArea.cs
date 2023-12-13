@@ -23,10 +23,10 @@ public class FlagArea : MonoBehaviour, IDropHandler
 
 	public void OnDrop(PointerEventData eventData) // ドロップされた時に行う処理
 	{
-		CardController card = eventData.pointerDrag.GetComponent<CardController>(); // ドラッグしてきた情報からCardMovementを取得
+		CardMovement movement = eventData.pointerDrag.GetComponent<CardMovement>(); // ドラッグしてきた情報からCardMovementを取得
 		SkillPanelController skill = eventData.pointerDrag.GetComponent<SkillPanelController>(); // ドラッグしてきた情報からSkillMovementを取得
-		if (!card.movement.isDraggable) return;
-		SetCard(card);
+		if (!GameManager.instance.canOperationCard) return;
+		SetCard(movement.card);
 	}
 
 	public void SetCard(CardController card, bool isSelf = true)
@@ -34,7 +34,7 @@ public class FlagArea : MonoBehaviour, IDropHandler
 		// カードの最大設置枚数は3枚まで
 		if (card != null && card is NormalCard normalCard && CanSetCard(isSelf))
 		{
-			card.transform.SetParent(isSelf ? allyArea : enemyArea);
+			card.cardObject.transform.SetParent(isSelf ? allyArea : enemyArea);
 			card.SetToFlagArea(this);
 			if (isSelf)
 			{

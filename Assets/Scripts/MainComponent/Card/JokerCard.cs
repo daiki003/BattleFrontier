@@ -4,10 +4,10 @@ using UnityEngine;
 
 public class JokerCard : NormalCard
 {
-    public void Init(int index)
-    {
-        base.Init(-1, Color.white, index);
-    }
+    public JokerCard(GameObject cardObject, int index) : base(cardObject, -1, Color.white, index)
+	{
+
+	}
 	public override string getSpritePath()
 	{
 		return "Images/Card/BattleFrontier/Joker";

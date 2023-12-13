@@ -165,7 +165,7 @@ public class SelectService : PanelPrefab
 	public void cancelSelect()
 	{
 		setAndReturnSelectedCard(true);
-		this.selectingCard.transform.SetParent(battleMgr.mainPanel.playerHand);
+		this.selectingCard.cardObject.transform.SetParent(battleMgr.mainPanel.playerHand);
 		battleMgr.player.cardCollection.alignment(isHand: !isEvolve, isField: isEvolve);
 		selectingCard.view.Show(new CardView.DisplayComponent(selectingCard));
 		battleMgr.deleteDescribe();
@@ -224,7 +224,7 @@ public class SelectService : PanelPrefab
 		foreach (CardController card in selectCardList)
 		{
 			if (card.model.isSelected) choiceCardList.Add(card.model.cardId);
-			Destroy(card.gameObject);
+			Destroy(card.cardObject);
 		}
 
 		// カードプレイ禁止状態を解除
@@ -243,9 +243,9 @@ public class SelectService : PanelPrefab
 	{
 		foreach (CardController card in selectCardList)
 		{
-			Destroy(card.gameObject);
+			Destroy(card.cardObject);
 		}
-		this.selectingCard.transform.SetParent(battleMgr.mainPanel.playerHand);
+		this.selectingCard.cardObject.transform.SetParent(battleMgr.mainPanel.playerHand);
 		battleMgr.player.cardCollection.alignment(isHand: !isEvolve, isField: isEvolve);
 		selectingCard.view.Show(new CardView.DisplayComponent(selectingCard));
 		battleMgr.deleteDescribe();
@@ -373,13 +373,13 @@ public class SelectService : PanelPrefab
 		// 選択ゾーンに移動する前の親要素の中でのindexを記録
 		foreach (CardController card in this.selectCardList)
 		{
-			int cardIndex = card.transform.GetSiblingIndex();
+			int cardIndex = card.cardObject.transform.GetSiblingIndex();
 			selectedCardIndex.Add(cardIndex);
 		}
 		foreach (CardController card in this.selectCardList)
 		{
 			card.model.isSelectTarget = true;
-			card.transform.SetParent(this.selectCardPlace, false);
+			card.cardObject.transform.SetParent(this.selectCardPlace, false);
 			card.changeClickType(ClickType.SELECTED_CARD);
 			card.view.changeSize(card.selectCardSize);
 		}
@@ -423,9 +423,9 @@ public class SelectService : PanelPrefab
 		selectedCard.cancelSelected();
 		if (parent != null)
 		{
-			selectedCard.transform.SetParent(parent, false);
-			if (selectCardList.Count < index) selectedCard.transform.SetAsLastSibling();
-			else selectedCard.transform.SetSiblingIndex(index);
+			selectedCard.cardObject.transform.SetParent(parent, false);
+			if (selectCardList.Count < index) selectedCard.cardObject.transform.SetAsLastSibling();
+			else selectedCard.cardObject.transform.SetSiblingIndex(index);
 		}
 	}
 

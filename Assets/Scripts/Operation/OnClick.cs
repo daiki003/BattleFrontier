@@ -8,6 +8,7 @@ public class OnClick : MonoBehaviour, IPointerClickHandler
 {
 	public ClickType type;
 	public float clickTime;
+	public CardController card;
 
 	public void OnPointerClick(PointerEventData eventData)
 	{
@@ -17,7 +18,6 @@ public class OnClick : MonoBehaviour, IPointerClickHandler
 				// クリック後ドラッグした場合は無効
 				if (eventData.dragging) return;
 
-				CardController card = GetComponent<CardController>();
 				if (!GameManager.instance.isBattle || card.model.isEnemy)
 				{
 					SEManager.instance.playSe("Select");
@@ -43,9 +43,9 @@ public class OnClick : MonoBehaviour, IPointerClickHandler
 				break;
 			case ClickType.SELECTED_CARD:
 				SEManager.instance.playSe("Select");
-				CardController selectedCard = GetComponent<CardController>();
-				GameManager.instance.showDescribe(selectedCard);
-				selectedCard.switchSelected();
+				CardMovement movement = GetComponent<CardMovement>();
+				GameManager.instance.showDescribe(movement.card);
+				movement.card.switchSelected();
 				break;
 			case ClickType.BONUS:
 				SEManager.instance.playSe("Select");

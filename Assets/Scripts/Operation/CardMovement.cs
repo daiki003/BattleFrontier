@@ -22,7 +22,6 @@ public class CardMovement : MonoBehaviour, IDragHandler, IBeginDragHandler, IEnd
 	{
 		isDraggable = false;
 
-		card = GetComponent<CardController>();
 		isDraggable = GameManager.instance.canOperationCard && !card.model.isShowCard && !card.model.isSelectTarget && !card.isFieldCard;
 		ScrollRect scrollRect = GetComponentInParent<ScrollRect>();
 		isScroll = !isDraggable && scrollRect != null;
@@ -58,7 +57,6 @@ public class CardMovement : MonoBehaviour, IDragHandler, IBeginDragHandler, IEnd
 		else if (isDraggable)
 		{
 			transform.position = eventData.position;
-			card = GetComponent<CardController>();
 			List<CardController> fieldCardList = BattleManager.instance.player.cardCollection.fieldCardList;
 			int index = fieldCardList.IndexOf(card);
 

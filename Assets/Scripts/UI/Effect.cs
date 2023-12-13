@@ -33,7 +33,7 @@ public class Effect : MonoBehaviour
 	{
 		if (card != null)
 		{
-			this.targetTransform = card.transform;
+			this.targetTransform = card.cardObject.transform;
 		}
 		else
 		{
@@ -51,7 +51,7 @@ public class Effect : MonoBehaviour
 	public GameObject energy(CardController card)
 	{
 		GameObject instantiateEffect = Instantiate(getEffect("Energy"), effectTransform);
-		instantiateEffect.transform.position = card.gameObject.transform.position;
+		instantiateEffect.transform.position = card.cardObject.gameObject.transform.position;
 		return instantiateEffect;
 	}
 

@@ -4,5 +4,8 @@ using UnityEngine;
 
 public class SpecialCard : CardController
 {
-    
+    public SpecialCard(GameObject cardObject, int index) : base(cardObject, index)
+	{
+		
+	}
 }

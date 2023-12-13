@@ -13,17 +13,17 @@ public class DropPlace : MonoBehaviour, IDropHandler
 
 	public void OnDrop(PointerEventData eventData) // ドロップされた時に行う処理
 	{
-		CardController card = eventData.pointerDrag.GetComponent<CardController>(); // ドラッグしてきた情報からCardMovementを取得
+		CardMovement movement = eventData.pointerDrag.GetComponent<CardMovement>(); // ドラッグしてきた情報からCardMovementを取得
 		SkillPanelController skill = eventData.pointerDrag.GetComponent<SkillPanelController>(); // ドラッグしてきた情報からSkillMovementを取得
 
 		// ドロップしたオブジェクトがカードかスキルかを判定
-		if (card != null) dropCard(card);
+		if (movement != null) dropCard(movement.card);
 		else return;
 	}
 
 	public void dropCard(CardController card)
 	{
-		if (!card.movement.isDraggable) return;
+		if (!GameManager.instance.canOperationCard) return;
 
 		switch (type)
 		{
@@ -37,10 +37,10 @@ public class DropPlace : MonoBehaviour, IDropHandler
 					if (card.isFieldCard) return;
 					if (!card.canPlay()) return;
 
-					CardController dropedCard = GetComponent<CardController>();
-					if (dropedCard.targetArea != null)
+					CardMovement movement = GetComponent<CardMovement>();
+					if (movement.card.targetArea != null)
 					{
-						dropedCard.targetArea.SetCard(card);
+						movement.card.targetArea.SetCard(card);
 					}
 				}
 				break;
