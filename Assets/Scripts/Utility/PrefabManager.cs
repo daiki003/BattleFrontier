@@ -52,6 +52,14 @@ public class PrefabManager : MonoBehaviour
 				GameObject wildSevenCardObject = Instantiate(unitCardPrefab, place);
 				WildSevenCard wildSevenCard = new WildSevenCard(wildSevenCardObject, index);
 				return wildSevenCard;
+			case "fog":
+				GameObject fogCardObject = Instantiate(unitCardPrefab, place);
+				FlagCard fogCard = new FlagCard(fogCardObject, FlagCardType.Fog, index);
+				return fogCard;
+			case "mad":
+				GameObject madCardObject = Instantiate(unitCardPrefab, place);
+				FlagCard madCard = new FlagCard(madCardObject, FlagCardType.Mad, index);
+				return madCard;
 		}
 		GameObject cardObject = Instantiate(unitCardPrefab, place);
 		CardController card = new CardController(cardObject, index);

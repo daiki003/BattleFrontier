@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+// 数字と色を持ったカードとして、カードエリアに置くカード
 public class NormalCard : CardController
 {
     public int number;

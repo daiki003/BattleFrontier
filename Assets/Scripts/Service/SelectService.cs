@@ -380,7 +380,7 @@ public class SelectService : PanelPrefab
 		{
 			card.model.isSelectTarget = true;
 			card.cardObject.transform.SetParent(this.selectCardPlace, false);
-			card.changeClickType(ClickType.SELECTED_CARD);
+			card.duringSelected = true;
 			card.view.changeSize(card.selectCardSize);
 		}
 	}

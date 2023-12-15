@@ -11,15 +11,19 @@ public class FlagArea : MonoBehaviour, IDropHandler
     public Transform playArea;
     public Transform allyArea;
     public Transform enemyArea;
+	public Transform flagCardArea;
 	public Transform firstFlagPosition;
 	public Transform allyFlagPosition;
 	public Transform enemyFlagPosition;
 	public GameObject flag;
     public int fieldIndex;
+	// カードを置ける最大枚数（Madがあれば4枚、なければ3枚）
+	public int cardSlot { get { return flagCardList.Any(c => c.flagCardType == FlagCardType.Mad) ? 4 : 3; } }
 	public List<NormalCard> allyInstalledCardList = new List<NormalCard>();
 	public List<NormalCard> enemyInstalledCardList = new List<NormalCard>();
 	public bool isPlayerArea;
 	public bool isEnemyArea;
+	public List<FlagCard> flagCardList = new List<FlagCard>();
 
 	public void OnDrop(PointerEventData eventData) // ドロップされた時に行う処理
 	{
@@ -31,11 +35,20 @@ public class FlagArea : MonoBehaviour, IDropHandler
 
 	public void SetCard(CardController card, bool isSelf = true)
 	{
-		// カードの最大設置枚数は3枚まで
-		if (card != null && card is NormalCard normalCard && CanSetCard(isSelf))
+		if (card == null)
 		{
-			card.cardObject.transform.SetParent(isSelf ? allyArea : enemyArea);
-			card.SetToFlagArea(this);
+			return;
+		}
+
+		// 列に対して使うカードなら列に追加する
+		if (card is FlagCard flagCard)
+		{
+			card.SetToFlagArea(this, flagCardArea);
+			flagCardList.Add(flagCard);
+		}
+		else if (card is NormalCard normalCard && CanSetCard(isSelf))
+		{
+			card.SetToFlagArea(this, isSelf ? allyArea : enemyArea);
 			if (isSelf)
 			{
 				allyInstalledCardList.Add(normalCard);
@@ -44,17 +57,22 @@ public class FlagArea : MonoBehaviour, IDropHandler
 			{
 				enemyInstalledCardList.Add(normalCard);
 			}
-			BattleManager.instance.player.isPlayCard = true;
-			SEManager.instance.playSe("InHand");
+		}
+		else
+		{
+			return;
+		}
 
-			// 自分側なら、相手に通信を送る
-			if (isSelf)
-			{
-				var parameter = new NetworkParameter();
-				parameter.cardIndex = card.index;
-				parameter.fieldIndex = fieldIndex;
-				GameManager.instance.networkManager.SendAction(NetworkOperationType.PLAY_CARD, parameter);
-			}
+		BattleManager.instance.player.isPlayCard = true;
+		SEManager.instance.playSe("InHand");
+
+		// 自分側なら、相手に通信を送る
+		if (isSelf)
+		{
+			var parameter = new NetworkParameter();
+			parameter.cardIndex = card.index;
+			parameter.fieldIndex = fieldIndex;
+			GameManager.instance.networkManager.SendAction(NetworkOperationType.PLAY_CARD, parameter);
 		}
 	}
 
@@ -72,11 +90,11 @@ public class FlagArea : MonoBehaviour, IDropHandler
 	{
 		if (isSelf)
 		{
-			return allyInstalledCardList.Count < 3 && !BattleManager.instance.player.isPlayCard;
+			return allyInstalledCardList.Count < cardSlot && !BattleManager.instance.player.isPlayCard;
 		}
 		else
 		{
-			return enemyInstalledCardList.Count < 3;
+			return enemyInstalledCardList.Count < cardSlot;
 		}
 	}
 
@@ -119,8 +137,8 @@ public class FlagArea : MonoBehaviour, IDropHandler
 
 	public int CalculateAreaPower(List<NormalCard> actualCardList)
 	{
-		// カードが2枚以下なら無効値
-		if (actualCardList.Count < 3)
+		// カードが最大枚数以下なら無効値
+		if (actualCardList.Count < cardSlot)
 		{
 			return -1;
 		}
@@ -128,6 +146,18 @@ public class FlagArea : MonoBehaviour, IDropHandler
 		// 計算用のリストに変換
 		var cardList = new List<NormalCard>(actualCardList).OrderBy(c => c.number).ToList();
 		int point = 0;
+
+		// 数字の強さを判定
+		for (int i = 0; i < cardList.Count; i++)
+		{
+			point += cardList[i].number;
+		}
+
+		// 霧カードが置かれている場合、数値の強さのみで判定する
+		if (flagCardList.Any(c => c.flagCardType == FlagCardType.Fog))
+		{
+			return point;
+		}
 		
 		// ストレートフラッシュを判定
 		if (IsFlush(cardList) && IsStreat(cardList))
@@ -151,12 +181,6 @@ public class FlagArea : MonoBehaviour, IDropHandler
 		if (IsStreat(cardList))
 		{
 			point += 100;
-		}
-
-		// 数字の強さを判定
-		for (int i = 0; i < cardList.Count; i++)
-		{
-			point += cardList[i].number;
 		}
 		return point;
 	}

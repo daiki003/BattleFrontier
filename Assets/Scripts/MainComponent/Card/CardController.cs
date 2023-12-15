@@ -12,8 +12,6 @@ public class CardController
 	public GameObject cardObject; // カードのオブジェクト
 	public CardView view; // カードの見た目の処理
 	public CardModel model; // カードのデータを処理
-	public OnClick click;
-	public DropPlace drop;
 	private PlayerController player;
 	private PlayerController enemy;
 	public BattleCardCollection ownerCardCollection;
@@ -76,6 +74,8 @@ public class CardController
 		}
 	}
 
+	public bool duringSelected;
+
 	// model,viewのリセット ------------------------------------------------------------------------------------------------------------------------------------------------
 	public CardController(GameObject cardObject, int index)
 	{
@@ -86,9 +86,8 @@ public class CardController
 		view = cardObject.GetComponent<CardView>();
 		var movement = cardObject.GetComponent<CardMovement>();
 		movement.card = this;
-		click = cardObject.GetComponent<OnClick>();
+		var click = cardObject.GetComponent<OnClick>();
 		click.card = this;
-		drop = cardObject.GetComponent<DropPlace>();
 
 		if (GameManager.instance.isBattle)
 		{
@@ -104,8 +103,9 @@ public class CardController
 		view.Show(this); // 表示
 	}
 
-	public void SetToFlagArea(FlagArea area)
+	public void SetToFlagArea(FlagArea area, Transform setArea)
 	{
+		cardObject.transform.SetParent(setArea);
 		this.targetArea = area;
         view.changeSize(installedSize);
         ownerCardCollection.removeFromHand(this);
@@ -194,12 +194,6 @@ public class CardController
 		model.destroyedParameter = new CardStatus(model.cost, model.currentAttack, model.currentHp);
 	}
 
-	// クリックタイプの変更
-	public void changeClickType(ClickType clickType)
-	{
-		click.type = clickType;
-	}
-
 	// 選択状態を切り替え
 	public void switchSelected()
 	{
@@ -217,7 +211,7 @@ public class CardController
 	public void cancelSelected()
 	{
 		model.isSelected = false;
-		changeClickType(ClickType.CARD);
+		duringSelected = false;
 	}
 
 	// 判定、取得系 ------------------------------------------------------------------------------------------------------------------------------------------------------------
