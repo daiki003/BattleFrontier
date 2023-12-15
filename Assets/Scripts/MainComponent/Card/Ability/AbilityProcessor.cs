@@ -130,8 +130,6 @@ public class AbilityProcessor
 				addComponent(timing, ownerSkill: skill, activateCard: activateCard, selectCard: selectedCard, activatePower: activatePower, insert: insert);
 			}
 		}
-		// クエストカウントを進める
-		battleMgr.player.advanceQuest(timing, activateCard, activatePower == 0 ? 1 : activatePower);
 
 		// 場の能力
 		List<CardController> fieldCardList = new List<CardController>();

@@ -137,10 +137,6 @@ public class CardController
 	{
 		bool isEnemy = model.isEnemy;
 		ownerCardCollection.addToGrave(this);
-		if (model.cardType != CardType.SPELL)
-		{
-			player.fluctuateDestroyCount(1);
-		}
 
 		// フィールドから削除する前に、インデックスを保存しておく
 		int fieldIndex = ownerCardCollection.fieldCardList.IndexOf(this);
@@ -169,21 +165,6 @@ public class CardController
 
 		// カードテキスト更新
 		player.updateCardText();
-
-		return new DestroyVfx(this);
-	}
-
-	// カードが捨てられた時の処理
-	public VfxBase discard()
-	{
-		player.cardCollection.addToGrave(this);
-		player.fluctuateDiscardCount(1);
-
-		// 手札のカードから削除
-		ownerCardCollection.removeFromHand(this);
-
-		// 捨てられた時の能力を発動
-		abilityProcessor.addComponent(AbilityTiming.DISCARDED, this);
 
 		return new DestroyVfx(this);
 	}
@@ -285,8 +266,6 @@ public class CardController
 
 		// プレイ時の効果を先に処理しておく（プレイ回数を増やす前に処理する）
 		abilityProcessor.activateComponent();
-		// カードのプレイ回数を増やす
-		player.fluctuatePlayCount(1);
 		// カードプレイ時に発動する効果を登録
 		abilityProcessor.addPursuitComponentSingleActivateCard(AbilityTiming.WHEN_PLAY_OTHER, this, selectedCard: selectCard);
 		abilityProcessor.activateComponent();

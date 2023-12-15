@@ -32,17 +32,6 @@ public class TrainingPhase : PanelPrefab
 		trainingPhaseObject.SetActive(active);
 	}
 
-	public void draw()
-	{
-		PlayerController player = BattleManager.instance.player;
-		int cost = player.model.cost;
-		if (cost > 0)
-		{
-			player.fluctuateCost(-1);
-			BattleManager.instance.mainAbilityProcessor.addPursuitComponent(AbilityTiming.WHEN_CONSUME_PP, activatePower: 1);
-		}
-	}
-
 	public void exchange()
 	{
 		if (BattleManager.instance.isSelect)
@@ -77,7 +66,6 @@ public class TrainingPhase : PanelPrefab
 	public void updateLevelUpButton()
 	{
 		levelUpCostText.text = BattleManager.instance.player.model.levelUpCost.ToString();
-		levelUpButton.interactable = BattleManager.instance.player.canLevelUp();
 	}
 
 	void Update()

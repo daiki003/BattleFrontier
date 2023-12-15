@@ -716,22 +716,6 @@ public class TurnPanelVfx : SingleVfx
 	}
 }
 
-public class AfterSelfTurnStartVfx : ActionVfx
-{
-	public AfterSelfTurnStartVfx() : base()
-	{
-		actionList.Add(changeCanOperation());
-	}
-
-	public Action changeCanOperation()
-	{
-		return () =>
-		{
-			BattleManager.instance.canOperationCard = true;
-		};
-	}
-}
-
 public class ChangeTurnVfx : ActionVfx
 {
 	public ChangeTurnVfx() : base()

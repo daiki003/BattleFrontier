@@ -11,10 +11,13 @@ public class BattleManager
 {
 	public BattleMainPanel mainPanel;
 
-	public SelfPlayerController player;
-	public EnemyPlayerController enemy;
+	public PlayerController player;
+	public PlayerController enemy;
+	public EnemyActionController enemyActionController;
 	public List<CardController> normalDeckCardList = new List<CardController>(); // 通常デッキのカードリスト
 	public List<CardController> specialDeckCardList = new List<CardController>(); // 特殊デッキのカードリスト
+
+	public bool isOnline;
 	
 
 	// カードプレイ中か、プレイ可能かを判定
@@ -100,13 +103,18 @@ public class BattleManager
 
 	// static化
 	public static BattleManager instance;
-	public BattleManager()
+	public BattleManager(bool isOnline = true)
 	{
+		this.isOnline = isOnline;
 		instance = this;
 		mainPanel = PrefabManager.instance.createBattleMainPanel(GameManager.instance.mainCanvas);
 		mainPanel.transform.SetSiblingIndex(GameManager.panelPrefabIndex);
-		player = new SelfPlayerController();
-		enemy = new EnemyPlayerController();
+
+		var selfFirstDrawIndex = GameManager.instance.networkManager.GetPlayerFirstHand();
+		var enemyFirstDrawIndex = GameManager.instance.networkManager.GetEnemyFirstHand();
+		player = new PlayerController(isSelf: true, selfFirstDrawIndex);
+		enemy = new PlayerController(isSelf: false, enemyFirstDrawIndex);
+		enemyActionController = new EnemyActionController(player, enemy);
 
 		while (battlePrefabs.Count > 0)
 		{

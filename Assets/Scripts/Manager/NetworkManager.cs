@@ -239,21 +239,14 @@ public class NetworkManager : MonoBehaviourPunCallbacks
 	[PunRPC]
 	public void EnemyCardPlay(int cardIndex, int fieldIndex)
 	{
-		BattleManager.instance.enemy.SetCard(cardIndex, fieldIndex);
+		BattleManager.instance.enemyActionController.SetCard(cardIndex, fieldIndex);
 	}
 
 	[PunRPC]
 	public void Draw(int[] indexArray, bool isSpecial, bool isSelf)
 	{
 		var indexList = indexArray.ToList();
-		if (isSelf)
-		{
-			BattleManager.instance.player.drawCardByIndex(indexList, isSpecial);
-		}
-		else
-		{
-			BattleManager.instance.enemy.drawCardByIndex(indexList, isSpecial);
-		}
+		BattleManager.instance.enemyActionController.Draw(indexList, isSelf, isSpecial);
 	}
 
 	[PunRPC]
@@ -265,7 +258,7 @@ public class NetworkManager : MonoBehaviourPunCallbacks
 	[PunRPC]
 	public void MoveFlag(int fieldIndex)
 	{
-		BattleManager.instance.enemy.GetFlag(fieldIndex);
+		BattleManager.instance.enemyActionController.GetFlag(fieldIndex);
 	}
 
 	// 各種取得用 ------------------------------------------------------------------------------------------------

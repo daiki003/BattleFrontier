@@ -137,7 +137,6 @@ public class SelectService : PanelPrefab
 		BattleManager.instance.stopPlayFlag = false;
 
 		// ターゲットリストを対象に、カードを使用
-		battleMgr.player.useCost(selectingCard.model.cost);
 		selectingCard.play(targetCardList);
 
 		// 選択対象になった時の能力発動
@@ -155,7 +154,6 @@ public class SelectService : PanelPrefab
 	public void playWithoutSelect()
 	{
 		//コストを使用し、カードプレイ禁止状態を解除
-		battleMgr.player.useCost(selectingCard.model.cost);
 		BattleManager.instance.stopPlayFlag = false;
 
 		// 対象を取らずに、カードを使用
@@ -231,7 +229,6 @@ public class SelectService : PanelPrefab
 		BattleManager.instance.stopPlayFlag = false;
 
 		// ターゲットリストを対象に、カードを使用
-		battleMgr.player.useCost(selectingCard.model.cost);
 		selectingCard.play(choiceCard: choiceCardList);
 
 		battleMgr.deleteDescribe();
