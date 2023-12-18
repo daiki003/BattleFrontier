@@ -11,31 +11,56 @@ public class FlagArea : MonoBehaviour, IDropHandler
     public Transform playArea;
     public Transform allyArea;
     public Transform enemyArea;
+	public Transform flagCardArea;
 	public Transform firstFlagPosition;
 	public Transform allyFlagPosition;
 	public Transform enemyFlagPosition;
-	public GameObject flag;
+	public GameObject flag, fogIcon, madIcon;
     public int fieldIndex;
+	// カードを置ける最大枚数（Madがあれば4枚、なければ3枚）
+	public int cardSlot { get { return flagCardList.Any(c => c.flagCardType == FlagCardType.Mad) ? 4 : 3; } }
 	public List<NormalCard> allyInstalledCardList = new List<NormalCard>();
 	public List<NormalCard> enemyInstalledCardList = new List<NormalCard>();
 	public bool isPlayerArea;
 	public bool isEnemyArea;
+	public List<FlagCard> flagCardList = new List<FlagCard>();
 
 	public void OnDrop(PointerEventData eventData) // ドロップされた時に行う処理
 	{
-		CardController card = eventData.pointerDrag.GetComponent<CardController>(); // ドラッグしてきた情報からCardMovementを取得
+		CardMovement movement = eventData.pointerDrag.GetComponent<CardMovement>(); // ドラッグしてきた情報からCardMovementを取得
+		if (!movement.isDraggable)
+		{
+			return;
+		}
 		SkillPanelController skill = eventData.pointerDrag.GetComponent<SkillPanelController>(); // ドラッグしてきた情報からSkillMovementを取得
-		if (!card.movement.isDraggable) return;
-		SetCard(card);
+		if (!GameManager.instance.canOperationCard) return;
+		SetCard(movement.card, GameManager.instance.battleMgr.isSelfTurn);
 	}
 
 	public void SetCard(CardController card, bool isSelf = true)
 	{
-		// カードの最大設置枚数は3枚まで
-		if (card != null && card is NormalCard normalCard && CanSetCard(isSelf))
+		if (card == null || !CanSetCard(card, isSelf))
 		{
-			card.transform.SetParent(isSelf ? allyArea : enemyArea);
-			card.SetToFlagArea(this);
+			return;
+		}
+
+		// 列に対して使うカードなら列に追加する
+		if (card is FlagCard flagCard)
+		{
+			card.SetToFlagArea(this, flagCardArea);
+			flagCardList.Add(flagCard);
+			if (flagCard.flagCardType == FlagCardType.Fog)
+			{
+				fogIcon.SetActive(true);
+			}
+			else if (flagCard.flagCardType == FlagCardType.Mad)
+			{
+				madIcon.SetActive(true);
+			}
+		}
+		else if (card is NormalCard normalCard)
+		{
+			card.SetToFlagArea(this, isSelf ? allyArea : enemyArea);
 			if (isSelf)
 			{
 				allyInstalledCardList.Add(normalCard);
@@ -44,40 +69,53 @@ public class FlagArea : MonoBehaviour, IDropHandler
 			{
 				enemyInstalledCardList.Add(normalCard);
 			}
-			BattleManager.instance.player.isPlayCard = true;
-			SEManager.instance.playSe("InHand");
+		}
+		else
+		{
+			return;
+		}
 
-			// 自分側なら、相手に通信を送る
-			if (isSelf)
-			{
-				var parameter = new NetworkParameter();
-				parameter.cardIndex = card.index;
-				parameter.fieldIndex = fieldIndex;
-				GameManager.instance.networkManager.SendAction(NetworkOperationType.PLAY_CARD, parameter);
-			}
+		if (isSelf)
+		{
+			BattleManager.instance.player.isPlayCard = true;
+		}
+		else
+		{
+			BattleManager.instance.enemy.isPlayCard = true;
+		}
+		SEManager.instance.playSe("InHand");
+
+		// 自分側なら、相手に通信を送る
+		if (isSelf)
+		{
+			var parameter = new NetworkParameter();
+			parameter.cardIndex = card.index;
+			parameter.fieldIndex = fieldIndex;
+			GameManager.instance.networkManager.SendAction(NetworkOperationType.PLAY_CARD, parameter);
 		}
 	}
 
-    public void ChangeAreaColor(bool isShine)
+    public void ChangeAreaColor(CardController card, bool isShine)
     {
-		// カードが3枚以上ある場合は光らせない
-		if (!CanSetCard(isSelf: true))
+		// カードが設置できない場合は光らせない
+		if (isShine && !CanSetCard(card, GameManager.instance.battleMgr.isSelfTurn))
 		{
 			isShine = false;
 		}
         playArea.gameObject.GetComponent<Image>().color = isShine ? new Color32(255, 200, 0, 100) : new Color32(50, 50, 50, 100);
     }
 
-	private bool CanSetCard(bool isSelf)
+	// 対象のカードがセット可能かどうか
+	private bool CanSetCard(CardController card, bool isSelf)
 	{
-		if (isSelf)
-		{
-			return allyInstalledCardList.Count < 3 && !BattleManager.instance.player.isPlayCard;
-		}
-		else
-		{
-			return enemyInstalledCardList.Count < 3;
-		}
+		var battleMgr = GameManager.instance.battleMgr;
+		var player = isSelf ? battleMgr.player : battleMgr.enemy;
+		var cardList = isSelf ? allyInstalledCardList : enemyInstalledCardList;
+
+		// 通常カードなら、規定の枚数カードが存在していたらプレイ不可
+		// 旗に置くカードなら、同じ種類のカードがすでに置かれていたらプレイ不可
+		bool isFull = ((card is NormalCard) && cardList.Count >= cardSlot) || ((card is FlagCard flagCard) && flagCardList.Any(c => c.flagCardType == flagCard.flagCardType));
+		return !isFull && (!player.isPlayCard || battleMgr.isTestBattle);
 	}
 
 	public void MoveFlag(bool isSelf)
@@ -119,8 +157,8 @@ public class FlagArea : MonoBehaviour, IDropHandler
 
 	public int CalculateAreaPower(List<NormalCard> actualCardList)
 	{
-		// カードが2枚以下なら無効値
-		if (actualCardList.Count < 3)
+		// カードが最大枚数以下なら無効値
+		if (actualCardList.Count < cardSlot)
 		{
 			return -1;
 		}
@@ -128,6 +166,18 @@ public class FlagArea : MonoBehaviour, IDropHandler
 		// 計算用のリストに変換
 		var cardList = new List<NormalCard>(actualCardList).OrderBy(c => c.number).ToList();
 		int point = 0;
+
+		// 数字の強さを判定
+		for (int i = 0; i < cardList.Count; i++)
+		{
+			point += cardList[i].number;
+		}
+
+		// 霧カードが置かれている場合、数値の強さのみで判定する
+		if (flagCardList.Any(c => c.flagCardType == FlagCardType.Fog))
+		{
+			return point;
+		}
 		
 		// ストレートフラッシュを判定
 		if (IsFlush(cardList) && IsStreat(cardList))
@@ -152,12 +202,6 @@ public class FlagArea : MonoBehaviour, IDropHandler
 		{
 			point += 100;
 		}
-
-		// 数字の強さを判定
-		for (int i = 0; i < cardList.Count; i++)
-		{
-			point += cardList[i].number;
-		}
 		return point;
 	}
 
@@ -166,11 +210,11 @@ public class FlagArea : MonoBehaviour, IDropHandler
 	{
 		var cardListWithoutJoker = sortedCardList.Where(c => c.number != -1).ToList();
 		var threeCardList = new List<NormalCard>();
-		for (int i = 0; i < sortedCardList.Count; i++)
+		for (int i = 0; i < cardListWithoutJoker.Count; i++)
 		{
-			if (threeCardList.All(c => c.number == sortedCardList[i].number || c.number == -1 || sortedCardList[i].number == -1))
+			if (threeCardList.All(c => c.number == cardListWithoutJoker[i].number || c.number == -1 || cardListWithoutJoker[i].number == -1))
 			{
-				threeCardList.Add(sortedCardList[i]);
+				threeCardList.Add(cardListWithoutJoker[i]);
 			}
 			else
 			{
@@ -187,9 +231,9 @@ public class FlagArea : MonoBehaviour, IDropHandler
 		var flushCardList = new List<NormalCard>();
 		for (int i = 0; i < cardListWithoutJoker.Count; i++)
 		{
-			if (flushCardList.All(c => c.cardColor == sortedCardList[i].cardColor))
+			if (flushCardList.All(c => c.cardColor == cardListWithoutJoker[i].cardColor))
 			{
-				flushCardList.Add(sortedCardList[i]);
+				flushCardList.Add(cardListWithoutJoker[i]);
 			}
 			else
 			{
@@ -203,16 +247,21 @@ public class FlagArea : MonoBehaviour, IDropHandler
 	public bool IsStreat(List<NormalCard> sortedCardList)
 	{
 		bool containJoker = sortedCardList.Any(c => c.number == -1);
+		bool useJoker = false;
 		var cardListWithoutJoker = sortedCardList.Where(c => c.number != -1).ToList();
 		var streatCardList = new List<NormalCard>();
 		for (int i = 0; i < cardListWithoutJoker.Count; i++)
 		{
 			var lastCard = streatCardList.LastOrDefault();
 			if (lastCard == null || 
-				sortedCardList[i].number == (lastCard.number + 1) ||
-				(containJoker && sortedCardList[i].number == (lastCard.number + 2)))
+				cardListWithoutJoker[i].number == (lastCard.number + 1))
 			{
-				streatCardList.Add(sortedCardList[i]);
+				streatCardList.Add(cardListWithoutJoker[i]);
+			}
+			else if (containJoker && !useJoker && cardListWithoutJoker[i].number == (lastCard.number + 2))
+			{
+				streatCardList.Add(cardListWithoutJoker[i]);
+				useJoker = true;
 			}
 			else
 			{

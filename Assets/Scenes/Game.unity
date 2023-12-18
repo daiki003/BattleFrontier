@@ -2814,14 +2814,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2cc333556ce9e7a4a84d9584a806e132, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  unitCardPrefab: {fileID: 8944232075947467123, guid: a5c46e9696519e44399b5b1bd107396b, type: 3}
+  unitCardPrefab: {fileID: 4349221737709345098, guid: a5c46e9696519e44399b5b1bd107396b, type: 3}
   flagArea: {fileID: 5153865947677038294, guid: 884de60c30a1f494db48201dbc1e963c, type: 3}
   inputArea: {fileID: 403382892948706655, guid: c8d81e486634c4c87a4326590a391e99, type: 3}
-  loading: {fileID: 1946904406721525864, guid: 2840d233781d94326ae0ce2fe364e03b, type: 3}
-  skillPrefab: {fileID: 1835992828545112584, guid: 9a9bbb66cc1c3744f829b6dfe96493bc, type: 3}
   levelPrefab: {fileID: 8875202887606133511, guid: f03711627d8a449a3893f1d898bbc826, type: 3}
   turnAndEnemyPrefab: {fileID: 3448094241611807993, guid: 9440355879b294b9da672e0248cb886f, type: 3}
-  skillAndQuestPrefab: {fileID: 9184144903230609325, guid: eb8462f74819340748244e3eb3804caf, type: 3}
   bonusPrefab: {fileID: 7096990785557366567, guid: bd946cbc3a4d34335b5aa94712c8fa69, type: 3}
   debugCardNamePrefab: {fileID: 6658154022686122777, guid: 8f22053d3098c4187b07b5ee814b3f62, type: 3}
   buffLogItemPrefab: {fileID: 901526841401832641, guid: 2349bc2a6e6794d1a983ed9510940ba5, type: 3}
@@ -6410,7 +6407,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3919362750219459672, guid: 7656fae22f75447aca33fcb7f7a109dd, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
-      value: 6
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3919362750219459672, guid: 7656fae22f75447aca33fcb7f7a109dd, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target

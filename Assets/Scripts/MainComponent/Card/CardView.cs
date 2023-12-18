@@ -47,7 +47,14 @@ public class CardView : MonoBehaviour
 
 	public virtual void Show(DisplayComponent component, bool forceOther = false, bool isChangeSize = true)
 	{
-		numberText.text = component.number.ToString();
+		if (component.number == -1)
+		{
+			numberText.text = "?";
+		}
+		else
+		{
+			numberText.text = component.number.ToString();
+		}
 		changeColor(component.color);
 	}
 

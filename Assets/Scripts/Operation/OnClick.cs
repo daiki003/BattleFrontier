@@ -8,6 +8,7 @@ public class OnClick : MonoBehaviour, IPointerClickHandler
 {
 	public ClickType type;
 	public float clickTime;
+	public CardController card;
 
 	public void OnPointerClick(PointerEventData eventData)
 	{
@@ -17,35 +18,39 @@ public class OnClick : MonoBehaviour, IPointerClickHandler
 				// クリック後ドラッグした場合は無効
 				if (eventData.dragging) return;
 
-				CardController card = GetComponent<CardController>();
-				if (!GameManager.instance.isBattle || card.model.isEnemy)
+				if (card.duringSelected)
 				{
 					SEManager.instance.playSe("Select");
-					GameManager.instance.showDescribe(card);
-					break;
+					CardMovement movement = GetComponent<CardMovement>();
+					GameManager.instance.showDescribe(movement.card);
+					movement.card.switchSelected();
 				}
 				else
 				{
-					if (card.isHandCard && !BattleManager.instance.player.model.focusHand)
+					if (!GameManager.instance.isBattle || card.model.isEnemy)
 					{
-						BattleManager.instance.player.changeFocusHand(true);
+						SEManager.instance.playSe("Select");
+						GameManager.instance.showDescribe(card);
+						break;
 					}
 					else
 					{
-						if (card.isFieldCard)
+						if (card.isHandCard && !BattleManager.instance.player.model.focusHand)
 						{
-							BattleManager.instance.trainingPhase.strengthenTarget = card;
+							BattleManager.instance.player.changeFocusHand(true);
 						}
-						SEManager.instance.playSe("Select");
-						GameManager.instance.showDescribe(card);
+						else
+						{
+							if (card.isFieldCard)
+							{
+								BattleManager.instance.trainingPhase.strengthenTarget = card;
+							}
+							SEManager.instance.playSe("Select");
+							GameManager.instance.showDescribe(card);
+						}
 					}
 				}
-				break;
-			case ClickType.SELECTED_CARD:
-				SEManager.instance.playSe("Select");
-				CardController selectedCard = GetComponent<CardController>();
-				GameManager.instance.showDescribe(selectedCard);
-				selectedCard.switchSelected();
+				
 				break;
 			case ClickType.BONUS:
 				SEManager.instance.playSe("Select");

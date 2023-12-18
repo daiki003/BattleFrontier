@@ -2,18 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+// 数字と色を持ったカードとして、カードエリアに置くカード
 public class NormalCard : CardController
 {
     public int number;
     public Color cardColor;
-    public override void Init(int number, Color color, int index)
+    public NormalCard(GameObject cardObject, int number, Color color, int index) : base(cardObject, index)
     {
         this.number = number;
         this.cardColor = color;
-        base.Init(number, color, index);
+        spritePath = "Images/Card/BattleFrontier/" + number;
     }
-	public override string getSpritePath()
-	{
-		return "Images/Card/BattleFrontier/" + number;
-	}
 }

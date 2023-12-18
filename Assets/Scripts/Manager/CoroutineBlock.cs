@@ -210,12 +210,11 @@ public class DrawVfx : TweenVfx
 	public Sequence drawOneCard(DrawCardComponent drawCard, Transform firstTransform, int drawNumber, int drawIndex)
 	{
 		Transform cardParent = firstTransform;
-		Transform cardTransform = drawCard.card.transform;
+		Transform cardTransform = drawCard.card.cardObject.transform;
 		Transform handTransform = BattleManager.instance.mainPanel.playerHand;
 
 		// 手札の一番右のカードを取得
-		CardController handCard = handTransform.GetComponentsInChildren<CardController>().LastOrDefault();
-		int handCardCount = handTransform.GetComponentsInChildren<CardController>().Count();
+		int handCardCount = handTransform.childCount;
 		Vector3 targetPosition = new Vector3(handTransform.position.x + getHandPosition(handCardCount + drawNumber, handCardCount + drawIndex), handTransform.position.y, handTransform.position.z);
 
 		// カードを初期位置に移動後、一度親をキャンバスにする
@@ -257,7 +256,7 @@ public class DrawVfx : TweenVfx
 				.AppendInterval(0.1f)
 				.AppendCallback(() => SEManager.instance.destroy())
 				.AppendInterval(0.2f)
-				.AppendCallback(() => drawCard.card.transform.SetParent(BattleManager.instance.mainPanel.banishArea));
+				.AppendCallback(() => drawCard.card.cardObject.transform.SetParent(BattleManager.instance.mainPanel.banishArea));
 		}
 
 		drawSequence.AppendCallback(() => drawCard.card.view.Show(drawCard.displayComponent));
@@ -307,7 +306,7 @@ public class SummonVfx : TweenVfx
 				Effect.instance.generateEffect("Summon", summonCard.view.transform);
 				if (!seSkip) SEManager.instance.playSe("InHand");
 
-				Transform cardTransform = summonCard.transform;
+				Transform cardTransform = summonCard.cardObject.transform;
 
 				// 親をフィールドにする
 				cardTransform.SetParent(fieldTransform);
@@ -349,7 +348,7 @@ public class DestroyVfx : SingleVfx
 			yield return new WaitForSeconds(0.4f);
 		}
 		// 親を墓場にして、表示を消す
-		card.transform.SetParent(BattleManager.instance.mainPanel.banishArea);
+		card.cardObject.transform.SetParent(BattleManager.instance.mainPanel.banishArea);
 
 		card.view.Show(displayComponent);
 	}
@@ -387,7 +386,7 @@ public class AddToDeckVfx : TweenVfx
 	// カード1枚をデッキに加える演出
 	public Sequence addToDeckOneCard(CardController addToDeckCard)
 	{
-		Transform cardTransform = addToDeckCard.transform;
+		Transform cardTransform = addToDeckCard.cardObject.transform;
 
 		// カードをセンターに移動
 		cardTransform.SetParent(BattleManager.instance.mainPanel.center);
@@ -467,7 +466,7 @@ public class BeforeUnitAttackVfx : TweenVfx
 
 	public void attack(CardController attackCard)
 	{
-		Transform attackerTransform = attackCard.transform;
+		Transform attackerTransform = attackCard.cardObject.transform;
 		Sequence attackSequence = DOTween.Sequence();
 		attackSequence
 			.AppendInterval(0.1f)
@@ -490,8 +489,8 @@ public class UnitAttackVfx : TweenVfx
 
 	public void attack(CardController attackCard, CardController targetCard, int attackDamage, int counterDamage, CardView.DisplayComponent attacerDisplayComponent, CardView.DisplayComponent targetDisplayComponent)
 	{
-		Transform attackerTransform = attackCard.transform;
-		Transform targetTransform = targetCard.transform;
+		Transform attackerTransform = attackCard.cardObject.transform;
+		Transform targetTransform = targetCard.cardObject.transform;
 		float distance = Vector3.Distance(attackerTransform.position, targetTransform.position);
 		float moveTime = baseTime;
 		Vector3 firstPosition = attackerTransform.position;
@@ -527,7 +526,7 @@ public class EndUnitAttackVfx : TweenVfx
 
 	public void attack(CardController attackCard)
 	{
-		Transform attackerTransform = attackCard.transform;
+		Transform attackerTransform = attackCard.cardObject.transform;
 		if (attackerTransform.localScale == defaultSize)
 		{
 			endTween();
@@ -687,12 +686,12 @@ public class OnPlayMotionVfx : TweenVfx
 		Sequence sequence = DOTween.Sequence();
 		float moveTime = isWait ? 0.1f : 0.01f;
 		sequence
-			.Append(card.transform.DOMove(BattleManager.instance.mainPanel.center.position, moveTime))
-			.Join(card.transform.DOMove(BattleManager.instance.mainPanel.center.position, moveTime))
-			.Join(card.transform.DOScale(card.centerCardSize, moveTime))
+			.Append(card.cardObject.transform.DOMove(BattleManager.instance.mainPanel.center.position, moveTime))
+			.Join(card.cardObject.transform.DOMove(BattleManager.instance.mainPanel.center.position, moveTime))
+			.Join(card.cardObject.transform.DOScale(card.centerCardSize, moveTime))
 			.AppendCallback(() => 
 			{
-				card.transform.SetParent(BattleManager.instance.mainPanel.playArea, false);
+				card.cardObject.transform.SetParent(BattleManager.instance.mainPanel.playArea, false);
 				SEManager.instance.playSe("PlayCard");
 			})
 			.AppendInterval(0.5f)
@@ -714,22 +713,6 @@ public class TurnPanelVfx : SingleVfx
 		yield return new WaitForSeconds(1.2f);
 		BattleManager.instance.turnPanel.close();
 		yield return new WaitForSeconds(0.5f);
-	}
-}
-
-public class AfterSelfTurnStartVfx : ActionVfx
-{
-	public AfterSelfTurnStartVfx() : base()
-	{
-		actionList.Add(changeCanOperation());
-	}
-
-	public Action changeCanOperation()
-	{
-		return () =>
-		{
-			BattleManager.instance.canOperationCard = true;
-		};
 	}
 }
 

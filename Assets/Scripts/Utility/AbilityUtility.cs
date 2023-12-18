@@ -73,9 +73,7 @@ public class AbilityUtility
 		switch ((AbilityType)Enum.Parse(typeof(AbilityType), abilityTrait.abilityType.ToUpper()))
 		{
 			case AbilityType.DRAW: return new DrawAbility(abilityTrait, ownerCard, ownerSkill);
-			case AbilityType.DESTROY: return new DestroyAbility(abilityTrait, ownerCard, ownerSkill);
 			case AbilityType.ADD_DECK: return new AddDeckAbility(abilityTrait, ownerCard, ownerSkill);
-			case AbilityType.DISCARD: return new DiscardAbility(abilityTrait, ownerCard, ownerSkill);
 			default: return null;
 		}
 	}

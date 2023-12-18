@@ -29,8 +29,7 @@ public class DrawAbility : AbilityController
 		base.startAbility(startAbilityArgument);
 
 		List<CardController> drawList = new List<CardController>();
-		if (target is NoneTarget) drawList = player.drawCard(power.getActualCount(startAbilityArgument.activateOption, startAbilityArgument.processOption));
-		else if (actualTargetList.Count > 0) drawList = player.drawCard(actualTargetList);
+		drawList = player.drawCard(power.getActualCount(startAbilityArgument.activateOption, startAbilityArgument.processOption));
 
 		startAbilityArgument.processOption.skillDrewCard = drawList;
 	}

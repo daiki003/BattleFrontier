@@ -7,19 +7,18 @@ using DG.Tweening;
 using System.Linq;
 using UnityEngine.Events;
 
-public class CardController : MonoBehaviour
+public class CardController
 {
+	public GameObject cardObject; // カードのオブジェクト
 	public CardView view; // カードの見た目の処理
 	public CardModel model; // カードのデータを処理
-	public CardMovement movement; //移動に関することを操作
-	public OnClick click;
-	public DropPlace drop;
 	private PlayerController player;
 	private PlayerController enemy;
 	public BattleCardCollection ownerCardCollection;
 	public BattleCardCollection opponentCardCollection;
 
 	public int index;
+	public string spritePath;
 	public FlagArea targetArea;
 	public Vector3 focusHandSize = new Vector3(1.4f, 1.4f, 1f);
 	public Vector3 unFocusHandSize = new Vector3(0.85f, 0.85f, 1f);
@@ -76,17 +75,20 @@ public class CardController : MonoBehaviour
 		}
 	}
 
+	public bool duringSelected;
+
 	// model,viewのリセット ------------------------------------------------------------------------------------------------------------------------------------------------
-	// カードを生成した時に呼ばれる関数
-	public virtual void Init(int number, Color color, int index)
+	public CardController(GameObject cardObject, int index)
 	{
 		this.index = index;
 
 		// Awakeでやっていたことをここで実行（非アクティブでデッキのカードを作成するので、Awakeが呼ばれないため）
-		view = GetComponent<CardView>();
-		movement = GetComponent<CardMovement>();
-		click = GetComponent<OnClick>();
-		drop = GetComponent<DropPlace>();
+		this.cardObject = cardObject; 
+		view = cardObject.GetComponent<CardView>();
+		var movement = cardObject.GetComponent<CardMovement>();
+		movement.card = this;
+		var click = cardObject.GetComponent<OnClick>();
+		click.card = this;
 
 		if (GameManager.instance.isBattle)
 		{
@@ -98,12 +100,17 @@ public class CardController : MonoBehaviour
 
 		model = new CardModel(); // カードデータを生成
 		model.supplementText = DescribeText.supplementText(this);
-		view.initIcon(getSpritePath());
-		view.Show(this); // 表示
 	}
 
-	public void SetToFlagArea(FlagArea area)
+	public void InitView()
 	{
+		view.initIcon(spritePath);
+		view.Show(this);
+	}
+
+	public void SetToFlagArea(FlagArea area, Transform setArea)
+	{
+		cardObject.transform.SetParent(setArea);
 		this.targetArea = area;
         view.changeSize(installedSize);
         ownerCardCollection.removeFromHand(this);
@@ -135,10 +142,6 @@ public class CardController : MonoBehaviour
 	{
 		bool isEnemy = model.isEnemy;
 		ownerCardCollection.addToGrave(this);
-		if (model.cardType != CardType.SPELL)
-		{
-			player.fluctuateDestroyCount(1);
-		}
 
 		// フィールドから削除する前に、インデックスを保存しておく
 		int fieldIndex = ownerCardCollection.fieldCardList.IndexOf(this);
@@ -171,31 +174,10 @@ public class CardController : MonoBehaviour
 		return new DestroyVfx(this);
 	}
 
-	// カードが捨てられた時の処理
-	public VfxBase discard()
-	{
-		player.cardCollection.addToGrave(this);
-		player.fluctuateDiscardCount(1);
-
-		// 手札のカードから削除
-		ownerCardCollection.removeFromHand(this);
-
-		// 捨てられた時の能力を発動
-		abilityProcessor.addComponent(AbilityTiming.DISCARDED, this);
-
-		return new DestroyVfx(this);
-	}
-
 	// カードが交換されたときの処理
 	public void exchange()
 	{
 		model.destroyedParameter = new CardStatus(model.cost, model.currentAttack, model.currentHp);
-	}
-
-	// クリックタイプの変更
-	public void changeClickType(ClickType clickType)
-	{
-		click.type = clickType;
 	}
 
 	// 選択状態を切り替え
@@ -215,7 +197,7 @@ public class CardController : MonoBehaviour
 	public void cancelSelected()
 	{
 		model.isSelected = false;
-		changeClickType(ClickType.CARD);
+		duringSelected = false;
 	}
 
 	// 判定、取得系 ------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -289,8 +271,6 @@ public class CardController : MonoBehaviour
 
 		// プレイ時の効果を先に処理しておく（プレイ回数を増やす前に処理する）
 		abilityProcessor.activateComponent();
-		// カードのプレイ回数を増やす
-		player.fluctuatePlayCount(1);
 		// カードプレイ時に発動する効果を登録
 		abilityProcessor.addPursuitComponentSingleActivateCard(AbilityTiming.WHEN_PLAY_OTHER, this, selectedCard: selectCard);
 		abilityProcessor.activateComponent();

@@ -7,7 +7,7 @@ using System;
 
 public class PrefabManager : MonoBehaviour
 {
-	[SerializeField] CardController unitCardPrefab;
+	[SerializeField] GameObject unitCardPrefab;
 	[SerializeField] FlagArea flagArea;
 	[SerializeField] InputArea inputArea;
 	[SerializeField] LevelController levelPrefab;
@@ -34,8 +34,9 @@ public class PrefabManager : MonoBehaviour
 	// カードを指定の場所に作成する
 	public CardController CreateNormalCard(int number, Color color, int index, Transform place)
 	{
-		NormalCard card = (NormalCard)Instantiate(unitCardPrefab, place);
-		card.Init(number, color, index);
+		GameObject cardObject = Instantiate(unitCardPrefab, place);
+		NormalCard card = new NormalCard(cardObject, number, color, index);
+		card.InitView();
 		return card;
 	}
 
@@ -45,15 +46,29 @@ public class PrefabManager : MonoBehaviour
 		switch (specialName)
 		{
 			case "joker":
-				JokerCard jokerCard = (JokerCard)Instantiate(unitCardPrefab, place);
-				jokerCard.Init(index);
+				GameObject jokerCardObject = Instantiate(unitCardPrefab, place);
+				JokerCard jokerCard = new JokerCard(jokerCardObject, index);
+				jokerCard.InitView();
 				return jokerCard;
 			case "wild_seven":
-				WildSevenCard wildSevenCard = (WildSevenCard)Instantiate(unitCardPrefab, place);
-				wildSevenCard.Init(index);
+				GameObject wildSevenCardObject = Instantiate(unitCardPrefab, place);
+				WildSevenCard wildSevenCard = new WildSevenCard(wildSevenCardObject, index);
+				wildSevenCard.InitView();
 				return wildSevenCard;
+			case "fog":
+				GameObject fogCardObject = Instantiate(unitCardPrefab, place);
+				FlagCard fogCard = new FlagCard(fogCardObject, FlagCardType.Fog, index);
+				fogCard.InitView();
+				return fogCard;
+			case "mad":
+				GameObject madCardObject = Instantiate(unitCardPrefab, place);
+				FlagCard madCard = new FlagCard(madCardObject, FlagCardType.Mad, index);
+				madCard.InitView();
+				return madCard;
 		}
-		CardController card = Instantiate(unitCardPrefab, place);
+		GameObject cardObject = Instantiate(unitCardPrefab, place);
+		CardController card = new CardController(cardObject, index);
+		card.InitView();
 		return card;
 	}
 

@@ -9,18 +9,18 @@ public class PlayerController
 {
 	public PlayerModel model; // データを処理
 	public BattleCardCollection cardCollection; // カード関連のデータを処理
-	private int DEFAULT_INCREASE_SKILL_POINT = 1;
-	private int LATER_INCREASE_SKILL_POINT = 2;
-	private int MAX_FIELD = 7;
 	public bool isPlayCard;
-	public virtual bool isSelf { get { return false; } }
+	public bool isSelf;
+	public List<int> firstDrawIndex = new List<int>();
 
 	private AbilityProcessor abilityProcessor { get { return BattleManager.instance.mainAbilityProcessor; } }
 
-	public PlayerController()
+	public PlayerController(bool isSelf, List<int> firstDrawIndex)
 	{
 		model = new PlayerModel();
 		cardCollection = new BattleCardCollection();
+		this.isSelf = isSelf;
+		this.firstDrawIndex = firstDrawIndex;
 	}
 
 	public void update()
@@ -41,7 +41,7 @@ public class PlayerController
 	}
 
 	// バトル開始時の処理
-	public virtual void battleStart()
+	public void battleStart()
 	{
 		resetAllCard();
 
@@ -50,6 +50,9 @@ public class PlayerController
 
 		// 2戦目以降原因不明で最初のドロー演出が一瞬になるので、とりあえずWaitを入れて誤魔化す
 		CoroutineUtility.createAndAddWaitVfx(0.001f);
+
+		// ドロー処理は指定されたインデックスのカードを引く
+		this.DrawCardByIndex(firstDrawIndex);
 	}
 
 	// バトル再開時の処理
@@ -66,8 +69,6 @@ public class PlayerController
 	public virtual void TurnStart()
 	{
 		isPlayCard = false;
-		TurnPanelVfx turnPanelVfx = new TurnPanelVfx(isSelfTurn: isSelf);
-		turnPanelVfx.addToAllBlockList();
 	}
 
 	// カード関連 ---------------------------------------------------------------------------------------------------------------------
@@ -79,11 +80,23 @@ public class PlayerController
 		number = Math.Min(number, deck.Count);
 
 		List<CardController> drawCardList = deck.GetRange(0, number);
+
+		// オンラインなら通信を送る
+		if (GameManager.instance.battleMgr.isOnline)
+		{
+			var parameter = new NetworkParameter();
+			parameter.indexList = drawCardList.Select(c => c.index).ToArray();
+			parameter.isSpecial = isSpecial;
+			// 相手に送るパラメータなので、isSelfは逆にする
+			parameter.isSelf = !isSelf;
+			GameManager.instance.networkManager.SendAction(NetworkOperationType.DRAW, parameter);
+		}
+
 		return drawCard(drawCardList, isSpecial);
 	}
 
 	// 指定のインデックスのカードを引く
-	public virtual List<CardController> drawCardByIndex(List<int> indexList, bool isSpecial = false)
+	public virtual List<CardController> DrawCardByIndex(List<int> indexList, bool isSpecial = false)
 	{
 		var deck = isSpecial ? BattleManager.instance.specialDeckCardList : BattleManager.instance.normalDeckCardList;
 		List<CardController> drawCardList = new List<CardController>();
@@ -113,6 +126,14 @@ public class PlayerController
 			cardCollection.addToHand(drawCard);
 			drawList.Add(drawCard);
 		}
+
+		// 自分側のみドロー演出を再生
+		if (isSelf)
+		{
+			DrawVfx drawVfx = new DrawVfx(drawList, BattleManager.instance.mainPanel.deck);
+			drawVfx.addToAllBlockList();
+		}
+
 		return drawList;
 	}
 
@@ -184,32 +205,7 @@ public class PlayerController
 		if (!force) SEManager.instance.playSe("Draw");
 	}
 
-	// スキル関連 ------------------------------------------------------------------------------------------------------
-	public void addAbility(List<AbilityTrait> abilityList)
-	{
-		foreach (AbilityTrait ability in abilityList)
-		{
-			model.abilityList.Add(AbilityUtility.createAbilityController(ability));
-		}
-	}
-	public void advanceQuest(AbilityTiming timing, List<CardController> activateCardList = null, int count = 1)
-	{
-		foreach (SkillPanelController skill in model.skillList)
-		{
-			if (skill.model.quest.countTiming == timing)
-			{
-				skill.model.quest.advanceCount(activateCardList, count);
-			}
-		}
-	}
-
 	// その他行動 ------------------------------------------------------------------------------------------------------------
-	// コスト消費
-	public void useCost(int cost)
-	{
-		fluctuateCost(-1 * cost);
-		abilityProcessor.addPursuitComponent(AbilityTiming.WHEN_CONSUME_PP, activatePower: cost);
-	}
 	
 	// カード交換
 	public void exchange(List<CardController> exchangeCards)
@@ -228,39 +224,8 @@ public class PlayerController
 		this.drawCard(exchangeCards.Count);
 
 		this.updateCardText();
-		this.updateCost();
 
 		// 交換後に再開用データを記録
 		BattleManager.instance.recordRecoveryData();
 	}
-
-	// 売却
-	public void chargeExchangeCount()
-	{
-		fluctuateExchangeCount(1);
-		var vfx = new PlayEffectVfx(BattleManager.instance.trainingPhase.exchangeObject.transform, "Charge");
-		vfx.addToAllBlockList();
-
-		this.updateCardText();
-		this.updateCost();
-	}
-
-	public bool canLevelUp()
-	{
-		return model.levelUpCost <= model.cost;
-	}
-
-	// PPが変化した時に行われる処理
-	public void updateCost()
-	{
-		UpdateCardViewVfx updateCardViewVfx = new UpdateCardViewVfx(cardCollection.handCardList);
-		updateCardViewVfx.addToAllBlockList();
-	}
-
-	// モデル操作系 ------------------------------------------------------------------------------------------------------------------------------------------------
-	public void fluctuateCost(int cost) { model.setCost(Math.Min(Math.Max(0, model.cost + cost), model.maxCost)); }
-	public void fluctuateExchangeCount(int soldCount) { model.setExchangeCount(model.exchangeCount + soldCount); }
-	public void fluctuatePlayCount(int count) { model.setPlayCount(model.turnPlayCount + count); }
-	public void fluctuateDiscardCount(int count) { model.setDiscardCount(model.turnDiscardCount + count); }
-	public void fluctuateDestroyCount(int count) { model.setDestroyCount(model.turnDestroyCount + count); }
 }

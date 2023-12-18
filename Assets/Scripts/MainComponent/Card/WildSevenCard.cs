@@ -4,10 +4,10 @@ using UnityEngine;
 
 public class WildSevenCard : NormalCard
 {
-    public void Init(int index)
-    {
-        base.Init(7, Color.white, index);
-    }
+    public WildSevenCard(GameObject cardObject, int index) : base(cardObject, 7, Color.white, index)
+	{
+
+	}
 	public override string getSpritePath()
 	{
 		return "Images/Card/BattleFrontier/WildSeven";

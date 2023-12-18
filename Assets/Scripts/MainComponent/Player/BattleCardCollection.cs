@@ -179,7 +179,7 @@ public class BattleCardCollection
 	{
 		foreach (CardController card in cardList)
 		{
-			card.transform.SetAsLastSibling();
+			card.cardObject.transform.SetAsLastSibling();
 		}
 	}
 }
