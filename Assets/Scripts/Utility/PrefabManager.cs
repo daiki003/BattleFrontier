@@ -36,6 +36,7 @@ public class PrefabManager : MonoBehaviour
 	{
 		GameObject cardObject = Instantiate(unitCardPrefab, place);
 		NormalCard card = new NormalCard(cardObject, number, color, index);
+		card.InitView();
 		return card;
 	}
 
@@ -47,22 +48,27 @@ public class PrefabManager : MonoBehaviour
 			case "joker":
 				GameObject jokerCardObject = Instantiate(unitCardPrefab, place);
 				JokerCard jokerCard = new JokerCard(jokerCardObject, index);
+				jokerCard.InitView();
 				return jokerCard;
 			case "wild_seven":
 				GameObject wildSevenCardObject = Instantiate(unitCardPrefab, place);
 				WildSevenCard wildSevenCard = new WildSevenCard(wildSevenCardObject, index);
+				wildSevenCard.InitView();
 				return wildSevenCard;
 			case "fog":
 				GameObject fogCardObject = Instantiate(unitCardPrefab, place);
 				FlagCard fogCard = new FlagCard(fogCardObject, FlagCardType.Fog, index);
+				fogCard.InitView();
 				return fogCard;
 			case "mad":
 				GameObject madCardObject = Instantiate(unitCardPrefab, place);
 				FlagCard madCard = new FlagCard(madCardObject, FlagCardType.Mad, index);
+				madCard.InitView();
 				return madCard;
 		}
 		GameObject cardObject = Instantiate(unitCardPrefab, place);
 		CardController card = new CardController(cardObject, index);
+		card.InitView();
 		return card;
 	}
 

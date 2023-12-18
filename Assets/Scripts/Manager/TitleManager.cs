@@ -50,9 +50,9 @@ public class TitleManager : MonoBehaviour
 
 	// トップ画面の各種ボタンを押した時の処理 --------------------------------------------------------------------------------------------
 
-	public void startBattleButton(bool isTest)
+	public void startBattleButton()
 	{
-		// GameManager.instance.startBattleCoroutine();
+		GameManager.instance.StartTestBattle();
 	}
 
 	public void startTutorialButton(int tutorialType)

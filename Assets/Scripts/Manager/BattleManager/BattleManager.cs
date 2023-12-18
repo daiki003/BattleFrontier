@@ -18,6 +18,7 @@ public class BattleManager
 	public List<CardController> specialDeckCardList = new List<CardController>(); // 特殊デッキのカードリスト
 
 	public bool isOnline;
+	public bool isTestBattle;
 	
 
 	// カードプレイ中か、プレイ可能かを判定
@@ -103,15 +104,37 @@ public class BattleManager
 
 	// static化
 	public static BattleManager instance;
-	public BattleManager(bool isOnline = true)
+	public BattleManager(bool isOnline = true, bool isTestBattle = false)
 	{
 		this.isOnline = isOnline;
+		this.isTestBattle = isTestBattle;
 		instance = this;
 		mainPanel = PrefabManager.instance.createBattleMainPanel(GameManager.instance.mainCanvas);
 		mainPanel.transform.SetSiblingIndex(GameManager.panelPrefabIndex);
 
-		var selfFirstDrawIndex = GameManager.instance.networkManager.GetPlayerFirstHand();
-		var enemyFirstDrawIndex = GameManager.instance.networkManager.GetEnemyFirstHand();
+		var selfFirstDrawIndex = new List<int>();
+		var enemyFirstDrawIndex = new List<int>();
+		// オフラインなら、ここで初手を抽選
+		if (!isOnline)
+		{
+			var indexList = RandomUtility.random(60, 14);
+			for (int i = 0; i < indexList.Count; i++)
+			{
+				if (i < 7)
+				{
+					selfFirstDrawIndex.Add(indexList[i]);
+				}
+				else
+				{
+					enemyFirstDrawIndex.Add(indexList[i]);
+				}
+			}
+		}
+		else
+		{
+			selfFirstDrawIndex = GameManager.instance.networkManager.GetPlayerFirstHand();
+			enemyFirstDrawIndex = GameManager.instance.networkManager.GetEnemyFirstHand();
+		}
 		player = new PlayerController(isSelf: true, selfFirstDrawIndex);
 		enemy = new PlayerController(isSelf: false, enemyFirstDrawIndex);
 		enemyActionController = new EnemyActionController(player, enemy);
@@ -199,12 +222,14 @@ public class BattleManager
 		}
 
 		specialDeckCardList = new List<CardController>();
-		for (int i = 1; i <= 10; i++)
-		{
-			CardController deckCard = PrefabManager.instance.CreateNormalCard(-1, Color.white, index, BattleManager.instance.mainPanel.invisibleArea);
-			specialDeckCardList.Add(deckCard);
-			index++;
-		}
+		CardController jokerCard = PrefabManager.instance.CreateSpecialCard("joker", 1, BattleManager.instance.mainPanel.invisibleArea);
+		specialDeckCardList.Add(jokerCard);
+		CardController wildSeven = PrefabManager.instance.CreateSpecialCard("wild_seven", 2, BattleManager.instance.mainPanel.invisibleArea);
+		specialDeckCardList.Add(wildSeven);
+		CardController fog = PrefabManager.instance.CreateSpecialCard("fog", 3, BattleManager.instance.mainPanel.invisibleArea);
+		specialDeckCardList.Add(fog);
+		CardController mad = PrefabManager.instance.CreateSpecialCard("mad", 4, BattleManager.instance.mainPanel.invisibleArea);
+		specialDeckCardList.Add(mad);
 
 		player.battleStart();
 		enemy.battleStart();
@@ -275,6 +300,16 @@ public class BattleManager
 		else
 		{
 			enemy.TurnStart();
+		}
+		TurnPanelVfx turnPanelVfx = new TurnPanelVfx(isSelfTurn);
+		turnPanelVfx.addToAllBlockList();
+
+		// 自分のターン開始なら、操作を可能にする
+		// テストバトルでは、相手のターン分も操作する
+		if (isSelfTurn || isTestBattle)
+		{
+			var afterTurnStartVfx = new ActionVfx(() => BattleManager.instance.canOperationCard = true);
+			afterTurnStartVfx.addToAllBlockList();
 		}
 
 		// ターン開始時処理が終わった時点で再開データを更新

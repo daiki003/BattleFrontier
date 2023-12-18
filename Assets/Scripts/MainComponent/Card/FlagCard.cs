@@ -14,10 +14,6 @@ public class FlagCard : CardController
     public FlagCard(GameObject cardObject, FlagCardType flagCardType, int index) : base(cardObject, index)
     {
         this.flagCardType = flagCardType;
+        spritePath = "Images/Card/BattleFrontier/" + flagCardType;
     }
-
-    public override string getSpritePath()
-	{
-		return "Images/Card/BattleFrontier/" + flagCardType;
-	}
 }

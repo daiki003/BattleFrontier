@@ -11,9 +11,6 @@ public class NormalCard : CardController
     {
         this.number = number;
         this.cardColor = color;
+        spritePath = "Images/Card/BattleFrontier/" + number;
     }
-	public override string getSpritePath()
-	{
-		return "Images/Card/BattleFrontier/" + number;
-	}
 }

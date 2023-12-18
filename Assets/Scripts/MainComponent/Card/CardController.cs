@@ -18,6 +18,7 @@ public class CardController
 	public BattleCardCollection opponentCardCollection;
 
 	public int index;
+	public string spritePath;
 	public FlagArea targetArea;
 	public Vector3 focusHandSize = new Vector3(1.4f, 1.4f, 1f);
 	public Vector3 unFocusHandSize = new Vector3(0.85f, 0.85f, 1f);
@@ -99,8 +100,12 @@ public class CardController
 
 		model = new CardModel(); // カードデータを生成
 		model.supplementText = DescribeText.supplementText(this);
-		view.initIcon(getSpritePath());
-		view.Show(this); // 表示
+	}
+
+	public void InitView()
+	{
+		view.initIcon(spritePath);
+		view.Show(this);
 	}
 
 	public void SetToFlagArea(FlagArea area, Transform setArea)

@@ -233,7 +233,7 @@ public class NetworkManager : MonoBehaviourPunCallbacks
 	{
 		UpdatePlayerPhase(RoomPhase.BATTLE, isSelf: true);
 		bool isMasterClient = PhotonNetwork.IsMasterClient;
-		StartCoroutine(GameManager.instance.StartBattle(isMasterClient));
+		StartCoroutine(GameManager.instance.StartBattle(isMasterClient, isOnline: true, isTestBattle: false));
 	}
 
 	[PunRPC]

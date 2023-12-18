@@ -69,13 +69,6 @@ public class PlayerController
 	public virtual void TurnStart()
 	{
 		isPlayCard = false;
-		TurnPanelVfx turnPanelVfx = new TurnPanelVfx(isSelfTurn: isSelf);
-		turnPanelVfx.addToAllBlockList();
-		if (isSelf)
-		{
-			var afterTurnStartVfx = new ActionVfx(() => BattleManager.instance.canOperationCard = true);
-			afterTurnStartVfx.addToAllBlockList();
-		}
 	}
 
 	// カード関連 ---------------------------------------------------------------------------------------------------------------------

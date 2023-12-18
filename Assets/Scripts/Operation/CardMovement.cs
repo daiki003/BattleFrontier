@@ -65,16 +65,11 @@ public class CardMovement : MonoBehaviour, IDragHandler, IBeginDragHandler, IEnd
 			pointer.position = Input.mousePosition;
 			List<RaycastResult> results = new List<RaycastResult>();
 			EventSystem.current.RaycastAll(pointer, results);
-			List<RaycastResult> onFieldResults = results.Where(r => r.gameObject.GetComponent<DropPlace>() != null && r.gameObject.GetComponent<DropPlace>().type == DropType.FIELD).ToList();
-			List<RaycastResult> onExchangeResult = results.Where(r => r.gameObject.GetComponent<DropPlace>() != null && r.gameObject.GetComponent<DropPlace>().type == DropType.SOLD).ToList();
 
 			var shineObject = results.Select(r => r.gameObject.GetComponent<FlagArea>()).FirstOrDefault(s => s != null);
-			if (shineObject != null)
+			foreach (FlagArea flagArea in BattleManager.instance.flagAreaList)
 			{
-				foreach (FlagArea flagArea in BattleManager.instance.flagAreaList)
-				{
-					flagArea.ChangeAreaColor(flagArea == shineObject);
-				}
+				flagArea.ChangeAreaColor(card, flagArea == shineObject);
 			}
 		}
 	}
@@ -96,7 +91,7 @@ public class CardMovement : MonoBehaviour, IDragHandler, IBeginDragHandler, IEnd
 			// フィールドの色を元に戻す
 			foreach (FlagArea flagArea in BattleManager.instance.flagAreaList)
 			{
-				flagArea.ChangeAreaColor(false);
+				flagArea.ChangeAreaColor(card, false);
 			}
 
 			// 離したカードを元の位置に戻す処理

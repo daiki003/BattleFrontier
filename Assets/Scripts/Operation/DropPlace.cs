@@ -27,10 +27,6 @@ public class DropPlace : MonoBehaviour, IDropHandler
 
 		switch (type)
 		{
-			case DropType.HAND:
-				return;
-			case DropType.FIELD:
-				break;
 			case DropType.CARD:
 				if (GameManager.instance.isBattle)
 				{
@@ -38,9 +34,13 @@ public class DropPlace : MonoBehaviour, IDropHandler
 					if (!card.canPlay()) return;
 
 					CardMovement movement = GetComponent<CardMovement>();
+					if (!movement.isDraggable)
+					{
+						return;
+					}
 					if (movement.card.targetArea != null)
 					{
-						movement.card.targetArea.SetCard(card);
+						movement.card.targetArea.SetCard(card, GameManager.instance.battleMgr.isSelfTurn);
 					}
 				}
 				break;

@@ -113,7 +113,12 @@ public class GameManager : MonoBehaviour
 
 	//モード遷移関係--------------------------------------------------------------------------------------------------------------
 	// バトルを開始
-	public IEnumerator StartBattle(bool isFirstTurn)
+	public void StartTestBattle()
+	{
+		StartCoroutine(StartBattle(isFirstTurn: true, isOnline: false, isTestBattle: true));
+	}
+	
+	public IEnumerator StartBattle(bool isFirstTurn, bool isOnline, bool isTestBattle)
 	{
 		// 効果音とともに暗転
 		titleMgr.loadingPanel.close();
@@ -122,7 +127,7 @@ public class GameManager : MonoBehaviour
 
 		if (battleMgr == null)
 		{
-			battleMgr = new BattleManager();
+			battleMgr = new BattleManager(isOnline, isTestBattle);
 		}
 
 		currentScene = GameScene.BATTLE;

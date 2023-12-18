@@ -63,7 +63,7 @@ public class BattleMainPanel : MonoBehaviour
         bool isActive = battleMgr.player.cardCollection.handCardList.Count < 7;
         normalDrawButton.interactable = isActive;
         specialDrawButton.interactable = isActive;
-        turnEndButton.interactable = battleMgr.canOperationCard && battleMgr.player.cardCollection.handCardList.Count == 7;
+        turnEndButton.interactable = battleMgr.canOperationCard && (battleMgr.player.cardCollection.handCardList.Count == 7 || battleMgr.isTestBattle);
         enemyHandText.text = battleMgr.enemy.cardCollection.handCardList.Count.ToString();
     }
 }
