@@ -75,7 +75,7 @@ public class BattleManager
 
 	// 説明表示中かどうか
 	public bool isDescribe { get { return describeAreaController.isDescribe; } }
-	private List<Color> cardColorList = new List<Color>()
+	public List<Color> cardColorList = new List<Color>()
 	{
 		Color.red,
 		Color.blue,
@@ -390,15 +390,13 @@ public class BattleManager
 		return false;
 	}
 
-	// カード表示関連 -------------------------------------------------------------------------------------------------------------------------------
-	// プレイ領域を一時的に触れるようにする
-	public void setOnPlay(bool active)
+	public List<NormalCard> GetDeckAndHandNormalCardList()
 	{
-		// CanvasGroup onplayCanvas = mainPanel.onplay.GetComponent<CanvasGroup>();
-		// onplayCanvas.blocksRaycasts = active;
-
-		// CanvasGroup onsoldCanvas = mainPanel.onsold.GetComponent<CanvasGroup>();
-		// onsoldCanvas.blocksRaycasts = active;
+		var deckAndHandCardList = new List<NormalCard>();
+		deckAndHandCardList.AddRange(normalDeckCardList.Where(c => c is NormalCard normalCard).Select(c => c as NormalCard));
+		deckAndHandCardList.AddRange(player.cardCollection.handCardList.Where(c => c is NormalCard normalCard).Select(c => c as NormalCard));
+		deckAndHandCardList.AddRange(enemy.cardCollection.handCardList.Where(c => c is NormalCard normalCard).Select(c => c as NormalCard));
+		return deckAndHandCardList;
 	}
 
 	// 説明関連 ----------------------------------------------------------------------------------------------------

@@ -36,9 +36,6 @@ public class CardMovement : MonoBehaviour, IDragHandler, IBeginDragHandler, IEnd
 			beforeDragParent = transform.parent;
 			firstPosition = transform.position;
 
-			// プレイ用のトランスフォームを活性にする
-			BattleManager.instance.setOnPlay(true);
-
 			GetComponent<CanvasGroup>().blocksRaycasts = false; // blocksRaycastsをオフにする
 
 			draggingParent = transform.parent;
@@ -111,8 +108,6 @@ public class CardMovement : MonoBehaviour, IDragHandler, IBeginDragHandler, IEnd
 
 			// blocksRaycastsをオンにする
 			GetComponent<CanvasGroup>().blocksRaycasts = true;
-
-			BattleManager.instance.setOnPlay(false);
 		}
 	}
 }

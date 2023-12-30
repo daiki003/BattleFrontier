@@ -117,11 +117,6 @@ public class CardController
 		ownerCardCollection.addToField(this, area.fieldIndex);
 	}
 
-	public virtual string getSpritePath()
-	{
-		return "Images/Card/BattleFrontier/default";
-	}
-
 	// 以下現在未使用 -------------------------------------------------------------------------------------------------------------------------------------------------
 	private AbilityProcessor abilityProcessor { get { return BattleManager.instance.mainAbilityProcessor; } }
 
@@ -275,18 +270,6 @@ public class CardController
 		abilityProcessor.addPursuitComponentSingleActivateCard(AbilityTiming.WHEN_PLAY_OTHER, this, selectedCard: selectCard);
 		abilityProcessor.activateComponent();
 		player.updateCardText();
-
-		// 使うか検討中なので一旦コメントアウト
-		// 同名カードをプレイしたときに自動で強化する処理
-		// CardController sameIdCard = ownerCardCollection.fieldCardList.FirstOrDefault(c => c.model.cardId == this.model.cardId && c != this && !c.model.isEvolve);
-		// if (sameIdCard != null && !sameIdCard.haveCardProperty<CantEvolveProperty>())
-		// {
-		// 	// ToDo プレイしたカードと同名の未強化のカードが場にいる場合、そのカードを強化してプレイしたカードは破壊される
-		// 	// 強化時効果は発動しない
-		// 	VfxBase destroyVfx = this.disappear();
-		// 	destroyVfx.addToAllBlockList();
-		// 	sameIdCard.evolve(activateWhenPlay: false);
-		// }
 	}
 
 	// カードが場に出た時の処理
