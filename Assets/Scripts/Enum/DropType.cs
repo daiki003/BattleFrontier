@@ -5,7 +5,6 @@ using UnityEngine;
 public enum DropType
 {
 	HAND,
-	FIELD,
-	CARD,
-	SOLD
+	FLAG,
+	CARD
 }

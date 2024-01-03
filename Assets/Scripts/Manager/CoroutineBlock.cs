@@ -267,7 +267,7 @@ public class DrawVfx : TweenVfx
 	// 手札の枚数と位置から移動後の手札の座標を計算
 	public int getHandPosition(int cardNumber, int index)
 	{
-		int spacing = BattleManager.instance.player.getHandSpacing(cardNumber) + 200;
+		int spacing = BattleManager.instance.mainPanel.getHandSpacing(cardNumber) + 200;
 		List<int> positionList = new List<int>();
 		int firstPosition = -1 * spacing * (cardNumber - 1) / 2;
 		for (int i = 0; i < cardNumber; i++)
@@ -339,7 +339,7 @@ public class DestroyVfx : SingleVfx
 
 	public IEnumerator destroy(CardController card, CardView.DisplayComponent displayComponent, bool omitEffect = false)
 	{
-		if (card.model.cardType != CardType.SPELL && !omitEffect)
+		if (!(card is SpellCard) && !omitEffect)
 		{
 			yield return new WaitForSeconds(0.2f);
 			Effect.instance.generateEffect("Destroy", card.view.transform);
@@ -650,27 +650,6 @@ public class GameSetVfx : SingleVfx
 }
 
 // カードプレイ関連 --------------------------------------------------------------------------------------------------------------------------
-public class WaitSelectVfx : ActionVfx
-{
-	CardController card;
-
-	public WaitSelectVfx(CardController card, SelectComponent selectComponent, int index, string originalCardId = null, bool isEvolve = false) : base()
-	{
-		this.card = card;
-		actionList.Add(waitSelect(card, selectComponent, index, originalCardId, isEvolve));
-	}
-
-	// 他のカードがプレイ中なら、カードのプレイを待機（選択、チョイス）
-	public Action waitSelect(CardController card, SelectComponent selectComponent, int index, string originalCardId, bool isEvolve)
-	{
-		return () =>
-		{
-			BattleManager.instance.showDescribe(this);
-			BattleManager.instance.selectPanel.startSelectCommon(selectComponent, selectingCard: card, originalCardId: originalCardId, isEvolve: isEvolve);
-		};
-	}
-}
-
 public class OnPlayMotionVfx : TweenVfx
 {
 	CardController card;

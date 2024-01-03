@@ -8,20 +8,24 @@ using UnityEngine.UI;
 public enum SelectType
 {
 	NONE,
+	SCOUT,
 	SELECT_TARGET,
 	CHOICE,
 	CHANGE_HAND,
 	SELECT_BONUS
 }
 
+public enum SelectPhase
+{
+	NONE,
+	DRAW,
+	RETURN_DECK
+}
+
 public class SelectComponent
 {
 	public SelectType selectType;
-	public AbilityTiming selectTiming;
-	public CountBase selectNumber;
-	public List<ConditionBase> selectCondition = new List<ConditionBase>();
 	public TargetBase selectTarget;
-	public List<string> choiceCardName;
 	public SelectComponent(SelectType selectType)
 	{
 		this.selectType = selectType;
@@ -30,30 +34,16 @@ public class SelectComponent
 		{
 			selectTarget = AbilityUtility.targetFactory("field");
 		}
-		BattleManager.instance.player.cardCollection.handCardList.Where(c => c.canExchange()).ToList();
 	}
 	public SelectComponent(CardMaster.SelectMasterComponent selectMasterComponent)
 	{
 		selectType = selectMasterComponent.selectType;
-		Enum.TryParse(selectMasterComponent.selectTiming.ToUpper(), out selectTiming);
-		selectNumber = AbilityUtility.countFactory(selectMasterComponent.selectNumber);
-		foreach (string conditionText in selectMasterComponent.selectCondition)
-		{
-			selectCondition.Add(AbilityUtility.conditionFactory(conditionText));
-		}
 		selectTarget = AbilityUtility.targetFactory(selectMasterComponent.selectTarget);
-		choiceCardName = new List<string>(selectMasterComponent.choiceCardName);
-	}
-	
-	public bool isValid(AbilityTiming timing)
-	{
-		return selectTiming == timing && selectCondition.All(c => c.judgeCondition());
 	}
 }
 
 public class SelectService : PanelPrefab
 {
-	[SerializeField] GameObject selectService;
 	[SerializeField] GameObject selectPanel;
 	[SerializeField] public Transform selectCardPlace;
 	[SerializeField] GridLayoutGroup selectGrid;
@@ -64,25 +54,28 @@ public class SelectService : PanelPrefab
 	[System.NonSerialized] public SelectComponent selectComponent;
 	List<CardController> selectCardList = new List<CardController>();
 	List<CardController> targetCardList = new List<CardController>(); // 選択されたカードリスト
-	List<SkillAndQuest> selectQuestList = new List<SkillAndQuest>();
 	List<BonusPanel> selectBonusList = new List<BonusPanel>();
 	private int selectCardNumber = 0;
 	private bool flexible; // 選択枚数がselectCardNumber以下の枚数で自由に選べるかどうか
 	private List<int> selectedCardIndex = new List<int>();
-	private string originalCardId;
-	private bool isEvolve;
 	private BattleManager battleMgr;
+	public SelectPhase currentPhase;
+	public int phaseCount;
+	private const int drawCount = 3;
+	private const int returnDeckCount = 2;
+
 	private Vector2 cardCellSize = new Vector2(200, 240);
 	private Vector2 bonusCellSize = new Vector2(350, 450);
 
 	public override void setup()
 	{
+		transform.SetSiblingIndex(2);
 		close();
 	}
 
 	public override void close()
 	{
-		selectService.SetActive(false);
+		selectPanel.SetActive(false);
 	}
 
 	public override void onClickExtra()
@@ -101,6 +94,50 @@ public class SelectService : PanelPrefab
 		}
 	}
 
+	// スカウト -----------------------------------------------------------------------------------------------------------------------------
+	public void ChangePhase(SelectPhase selectPhase)
+	{
+		phaseCount = 0;
+		this.currentPhase = selectPhase;
+		string text = "";
+		switch (currentPhase)
+		{
+			case SelectPhase.DRAW:
+				text = "カードを3枚引いてください";
+				break;
+			case SelectPhase.RETURN_DECK:
+				text = "カードを2枚捨ててください";
+				break;
+		}
+		selectText.text = text;
+	}
+
+	public void AdvancePhase()
+	{
+		phaseCount++;
+		switch (currentPhase)
+		{
+			case SelectPhase.DRAW:
+				if (phaseCount >= drawCount)
+				{
+					ChangePhase(SelectPhase.RETURN_DECK);
+				}
+				break;
+			case SelectPhase.RETURN_DECK:
+				if (phaseCount >= returnDeckCount)
+				{
+					EndSelect();
+				}
+				break;
+		}
+	}
+
+	public void EndSelect()
+	{
+		ChangePhase(SelectPhase.NONE);
+		selectType = SelectType.NONE;
+		close();
+	}
 
 	// 対象選択関連 ---------------------------------------------------------------------------------------------------------------------------
 	public void startSelect()
@@ -119,9 +156,7 @@ public class SelectService : PanelPrefab
 				return;	
 			}
 		}
-		this.selectService.SetActive(true);
 		this.selectPanel.SetActive(true);
-		this.selectCardNumber = selectComponent.selectNumber.getActualCount(selectingCard);
 		this.flexible = false;
 		this.selectText.text = "対象を選択してください（" + selectCardNumber + "枚）";
 		this.selectGrid.cellSize = cardCellSize;
@@ -148,7 +183,7 @@ public class SelectService : PanelPrefab
 
 		battleMgr.deleteDescribe();
 		this.selectType = SelectType.NONE;
-		this.selectService.SetActive(false);
+		this.selectPanel.SetActive(false);
 	}
 
 	public void playWithoutSelect()
@@ -164,11 +199,10 @@ public class SelectService : PanelPrefab
 	{
 		setAndReturnSelectedCard(true);
 		this.selectingCard.cardObject.transform.SetParent(battleMgr.mainPanel.playerHand);
-		battleMgr.player.cardCollection.alignment(isHand: !isEvolve, isField: isEvolve);
 		selectingCard.view.Show(new CardView.DisplayComponent(selectingCard));
 		battleMgr.deleteDescribe();
 		this.selectType = SelectType.NONE;
-		this.selectService.SetActive(false);
+		this.selectPanel.SetActive(false);
 		// カードプレイ禁止状態を解除
 		BattleManager.instance.stopPlayFlag = false;
 	}
@@ -177,7 +211,6 @@ public class SelectService : PanelPrefab
 	public void startChangeHand()
 	{
 		this.selectCardList = selectComponent.selectTarget.getTargetCards(BattleManager.instance.player.cardCollection.substanceCard);
-		this.selectService.SetActive(true);
 		this.selectPanel.SetActive(true);
 		this.selectCardNumber = BattleManager.instance.player.cardCollection.handCardList.Count;
 		this.flexible = true;
@@ -199,7 +232,7 @@ public class SelectService : PanelPrefab
 
 		battleMgr.deleteDescribe();
 		this.selectType = SelectType.NONE;
-		this.selectService.SetActive(false);
+		this.selectPanel.SetActive(false);
 		BattleManager.instance.stopPlayFlag = false;
 	}
 
@@ -208,7 +241,7 @@ public class SelectService : PanelPrefab
 		setAndReturnSelectedCard(true);
 		battleMgr.deleteDescribe();
 		this.selectType = SelectType.NONE;
-		this.selectService.SetActive(false);
+		this.selectPanel.SetActive(false);
 		BattleManager.instance.stopPlayFlag = false;
 	}
 
@@ -233,7 +266,7 @@ public class SelectService : PanelPrefab
 
 		battleMgr.deleteDescribe();
 		this.selectType = SelectType.NONE;
-		this.selectService.SetActive(false);
+		this.selectPanel.SetActive(false);
 	}
 
 	public void cancelChoice()
@@ -243,25 +276,25 @@ public class SelectService : PanelPrefab
 			Destroy(card.cardObject);
 		}
 		this.selectingCard.cardObject.transform.SetParent(battleMgr.mainPanel.playerHand);
-		battleMgr.player.cardCollection.alignment(isHand: !isEvolve, isField: isEvolve);
 		selectingCard.view.Show(new CardView.DisplayComponent(selectingCard));
 		battleMgr.deleteDescribe();
 		this.selectType = SelectType.NONE;
-		this.selectService.SetActive(false);
+		this.selectPanel.SetActive(false);
 		// カードプレイ禁止状態を解除
 		BattleManager.instance.stopPlayFlag = false;
 	}
 
 	// 共通 -----------------------------------------------------------------------------------------------------------------------------
-	public void startSelectCommon(SelectComponent selectComponent, CardController selectingCard = null, string originalCardId = null, bool isEvolve = false, int level = 0)
+	public void StartSelectCommon(SelectType selectType, CardController selectingCard = null)
 	{
-		this.selectType = selectComponent.selectType;
-		this.selectComponent = selectComponent;
-		this.isEvolve = isEvolve;
+		this.selectType = selectType;
 		this.selectingCard = selectingCard;
-		this.originalCardId = originalCardId;
+		this.selectPanel.SetActive(true);
 		switch (selectType)
 		{
+			case SelectType.SCOUT:
+				ChangePhase(SelectPhase.DRAW);
+				break;
 			case SelectType.SELECT_TARGET:
 				startSelect();
 				break;

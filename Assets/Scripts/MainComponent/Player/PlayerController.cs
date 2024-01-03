@@ -7,7 +7,6 @@ using System.Linq;
 
 public class PlayerController
 {
-	public PlayerModel model; // データを処理
 	public BattleCardCollection cardCollection; // カード関連のデータを処理
 	public bool isPlayCard;
 	public bool isSelf;
@@ -17,15 +16,14 @@ public class PlayerController
 
 	public PlayerController(bool isSelf, List<int> firstDrawIndex)
 	{
-		model = new PlayerModel();
 		cardCollection = new BattleCardCollection();
 		this.isSelf = isSelf;
 		this.firstDrawIndex = firstDrawIndex;
 	}
 
-	public void update()
+	public void Update()
 	{
-		
+		cardCollection.Update();
 	}
 
 	// reset --------------------------------------------------------------------------------------------------
@@ -44,8 +42,6 @@ public class PlayerController
 	public void battleStart()
 	{
 		resetAllCard();
-
-		changeFocusHand(false, force: true);
 		isPlayCard = false;
 
 		// 2戦目以降原因不明で最初のドロー演出が一瞬になるので、とりあえずWaitを入れて誤魔化す
@@ -58,10 +54,7 @@ public class PlayerController
 	// バトル再開時の処理
 	public void battleRecovery(RecoveryData recoveryData)
 	{
-		model.setValiableParameter(recoveryData.player.valiableParameter);
 		resetAllCard();
-
-		changeFocusHand(false, force: true);
 
 		updateCardText();
 	}
@@ -123,7 +116,7 @@ public class PlayerController
 				deck.Remove(cardList[i]);
 			}
 			CardController drawCard = cardList[i];
-			cardCollection.addToHand(drawCard);
+			cardCollection.AddToHand(drawCard);
 			drawList.Add(drawCard);
 		}
 
@@ -147,62 +140,6 @@ public class PlayerController
 		{
 			card.updateText();
 		}
-
-		// スキルクエストカウント更新
-		foreach (SkillPanelController skill in model.skillList)
-		{
-			skill.updateQuestCount();
-		}
-	}
-
-	// 手札の枚数に応じてカードのスペースを変更する
-	public void refreshCardSpace()
-	{
-		List<CardController> playerHandCardList = cardCollection.handCardList;
-		BattleManager.instance.mainPanel.holizontalLayoutGroup.spacing = getHandSpacing(playerHandCardList.Count);
-	}
-
-	public int getHandSpacing(int cardNumber)
-	{
-		if (cardNumber < 8)
-		{
-			return model.focusHand ? 50 : -50;
-		}
-		else if (cardNumber == 8)
-		{
-			return model.focusHand ? 10 : -70;
-		}
-		else if (cardNumber == 9)
-		{
-			return model.focusHand ? -10 : -80;
-		}
-		else
-		{
-			return model.focusHand ? -25 : -100;
-		}
-	}
-
-	// 手札の拡大、縮小
-	public void changeFocusHand(bool focus, bool force = false)
-	{
-		if (model.focusHand == focus && !force) return;
-
-		model.setFocusHand(focus);
-		Vector2 focusSize = new Vector2(2000, 370);
-		Vector2 unFocusSize = new Vector2(1250, 300);
-		Vector3 focusPosition = new Vector3(110, 150, 0);
-		Vector3 unFocusPosition = new Vector3(500, 100, 0);
-
-		RectTransform handTransform = (RectTransform)BattleManager.instance.mainPanel.playerHand;
-		handTransform.sizeDelta = focus ? focusSize : unFocusSize;
-		handTransform.anchoredPosition = focus ? focusPosition : unFocusPosition;
-
-		foreach (CardController card in cardCollection.handCardList)
-		{
-			card.view.changeSize(focus ? card.focusHandSize : card.unFocusHandSize);
-		}
-		refreshCardSpace();
-		if (!force) SEManager.instance.playSe("Draw");
 	}
 
 	// その他行動 ------------------------------------------------------------------------------------------------------------
@@ -220,7 +157,6 @@ public class PlayerController
 		CoroutineUtility.createAndAddWaitVfx(0.3f);
 
 		// 交換ポイント消費
-		model.setTurnFirstExchange(false);
 		this.drawCard(exchangeCards.Count);
 
 		this.updateCardText();

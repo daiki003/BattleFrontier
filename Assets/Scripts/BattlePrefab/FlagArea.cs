@@ -6,7 +6,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using System.Linq;
 
-public class FlagArea : MonoBehaviour, IDropHandler
+public class FlagArea : MonoBehaviour
 {
     public Transform playArea;
     public Transform allyArea;
@@ -25,14 +25,13 @@ public class FlagArea : MonoBehaviour, IDropHandler
 	public bool isEnemyArea;
 	public List<FlagCard> flagCardList = new List<FlagCard>();
 
-	public void OnDrop(PointerEventData eventData) // ドロップされた時に行う処理
+	public void DropCard(CardController card)
 	{
-		CardMovement movement = eventData.pointerDrag.GetComponent<CardMovement>(); // ドラッグしてきた情報からCardMovementを取得
+		var movement = card.cardObject.GetComponent<CardMovement>();
 		if (!movement.isDraggable)
 		{
 			return;
 		}
-		SkillPanelController skill = eventData.pointerDrag.GetComponent<SkillPanelController>(); // ドラッグしてきた情報からSkillMovementを取得
 		if (!GameManager.instance.canOperationCard) return;
 		SetCard(movement.card, GameManager.instance.battleMgr.isSelfTurn);
 	}

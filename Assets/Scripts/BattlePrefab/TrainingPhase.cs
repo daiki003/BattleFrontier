@@ -40,15 +40,13 @@ public class TrainingPhase : PanelPrefab
 			return;
 		}
 		BattleManager.instance.stopPlayFlag = true;
-		SelectComponent selectComponent = new SelectComponent(SelectType.CHANGE_HAND);
-		ActionVfx actionVfx = new ActionVfx(() => BattleManager.instance.selectPanel.startSelectCommon(selectComponent));
+		ActionVfx actionVfx = new ActionVfx(() => BattleManager.instance.selectPanel.StartSelectCommon(SelectType.CHANGE_HAND));
 		actionVfx.addToAllBlockList();
 	}
 
 	public void updateStrengthenButton()
 	{
 		bool canEvolveTarget = strengthenTarget != null && !strengthenTarget.model.applyInformation.eternalApplyValue.isEvolve;
-		strengthenButton.interactable = canEvolveTarget && strengthenTarget.model.cost + 2 <= BattleManager.instance.player.model.cost;
 		strengthenCostText.text = canEvolveTarget ? (strengthenTarget.model.cost + 2).ToString() : "0";
 	}
 
@@ -63,14 +61,9 @@ public class TrainingPhase : PanelPrefab
 		// レベルアップ後に再開用データを記録
 		BattleManager.instance.recordRecoveryData();
 	}
-	public void updateLevelUpButton()
-	{
-		levelUpCostText.text = BattleManager.instance.player.model.levelUpCost.ToString();
-	}
 
 	void Update()
 	{
-		updateLevelUpButton();
 		updateStrengthenButton();
 	}
 }

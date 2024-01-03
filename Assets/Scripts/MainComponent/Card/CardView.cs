@@ -12,6 +12,7 @@ public class CardView : MonoBehaviour
 	[SerializeField] protected Text numberText;
 	[SerializeField] protected Image iconImage;
 	[SerializeField] protected GameObject mainPanel;
+	[SerializeField] public GameObject activeCursor;
 
 	// 表示に必要なカードの要素
 	public class DisplayComponent
@@ -26,6 +27,10 @@ public class CardView : MonoBehaviour
 			{
 				this.number = normalCard.number;
 				this.color = normalCard.cardColor;
+			}
+			else
+			{
+				this.color = Color.white;
 			}
 		}
 	}

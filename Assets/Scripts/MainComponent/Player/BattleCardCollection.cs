@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -27,7 +28,21 @@ public class BattleCardCollection
 	public List<CardController> handCardList { get; set; } = new List<CardController>(); // 手札のカードリスト
 	public List<List<CardController>> fieldCardListList { get; set; } = new List<List<CardController>>(); // フィールドのカードリスト
 	
-	public List<CardController> fieldCardList { get; set; } = new List<CardController>(); // フィールドのカードリスト
+	public List<CardController> fieldCardList // フィールドのカードリスト1枚1枚
+	{
+		get
+		{
+			var cardList = new List<CardController>();
+			for (int i = 0; i < fieldCardListList.Count; i++)
+			{
+				foreach (CardController card in fieldCardListList[i])
+				{
+					cardList.Add(card);
+				}
+			}
+			return cardList;
+		}
+	}
 	public List<CardController> deckCardList = new List<CardController>(); // デッキのカードリスト
 	public List<CardController> graveCardList = new List<CardController>(); // 手札、フィールド、デッキ以外のカードリスト
 
@@ -58,65 +73,52 @@ public class BattleCardCollection
 	}
 
 	// カード追加系 ------------------------------------------------------------------------------------------------------------------------------
-	public void addToField(CardController card, int fieldIndex)
+	public void AddToField(CardController card, int fieldIndex)
 	{
 		fieldCardListList[fieldIndex].Add(card);
 	}
 
-	public void addToHand(CardController card)
+	public void AddToHand(CardController card)
 	{
 		handCardList.Add(card);
 	}
 
-	public void addToDeck(CardController card)
+	public void AddToDeckTop(CardController card)
 	{
-		deckCardList.Add(card);
+		deckCardList.Insert(0, card);
 	}
 
-	public void addToGrave(CardController destroyedCard)
+	public void AddToGrave(CardController destroyedCard)
 	{
 		graveCardList.Add(destroyedCard);
 	}
 
 	// カード削除系 ------------------------------------------------------------------------------------------------------------------------------
-	public void removeFromField(CardController card)
-	{
-		fieldCardList.Remove(card);
-	}
 
 	public void removeFromHand(CardController card)
 	{
 		handCardList.Remove(card);
 	}
 
-	public void removeFromGrave(CardController card)
-	{
-		graveCardList.Remove(card);
-	}
-
 	// その他 ------------------------------------------------------------------------------------------------------------------------------
 	// デッキをシャッフルする
 	public void shuffleDeck()
 	{
-		// チュートリアルの場合、デッキをシャッフルしない
-		if (!BattleManager.instance.isTutorial)
+		// 整数 n の初期値はデッキの枚数
+		int n = deckCardList.Count;
+
+		// nが1より小さくなるまで繰り返す
+		while (n > 1)
 		{
-			// 整数 n の初期値はデッキの枚数
-			int n = deckCardList.Count;
+			n--;
 
-			// nが1より小さくなるまで繰り返す
-			while (n > 1)
-			{
-				n--;
+			// kは 0 〜 n+1 の間のランダムな値
+			int k = RandomUtility.random(n + 1);
 
-				// kは 0 〜 n+1 の間のランダムな値
-				int k = RandomUtility.random(n + 1);
-
-				// k番目のカードをtempに代入
-				CardController temp = deckCardList[k];
-				deckCardList[k] = deckCardList[n];
-				deckCardList[n] = temp;
-			}
+			// k番目のカードをtempに代入
+			CardController temp = deckCardList[k];
+			deckCardList[k] = deckCardList[n];
+			deckCardList[n] = temp;
 		}
 	}
 
@@ -135,44 +137,10 @@ public class BattleCardCollection
 		for (int i = 0; i < summonCardList.Count; i++)
 		{
 			CardController summonCard = summonCardList[i];
-			if (fieldCardList.Count < MAX_FIELD)
-			{
-				summonCard.sortie();
-			}
+			summonCard.sortie();
 		}
 		wholeBlock.addVfx(summonBlock);
 		wholeBlock.addToAllBlockList();
-	}
-
-	// 場にトークンカードを生成する
-	public List<CardController> summonToken(List<string> summonCardIdList, int backIndex = 0, bool isEnemy = false, bool isRevival = false, bool isGoldenRevival = false, List<ApplyInformation> copiedApplyInformation = null)
-	{
-		List<CardController> summonCardList = new List<CardController>();
-		return summonCardList;
-	}
-
-	// カードの変身（入れ替え）
-	public void metamorphose(CardController originalCard, CardController metamorphoseCared)
-	{
-		ApplyInformation inheriyApplyInformation = originalCard.model.applyInformation.copyInformation();
-		metamorphoseCared.model.applyInformation = inheriyApplyInformation;
-		// 場になければ手札にある想定
-		var targetList = fieldCardList.Contains(originalCard) ? fieldCardList : handCardList;
-		int originalIndex = targetList.IndexOf(originalCard);
-		targetList.Remove(originalCard);
-		targetList.Insert(originalIndex, metamorphoseCared);
-	}
-
-	public void alignment(bool isHand = false, bool isField = false)
-	{
-		if (isHand)
-		{
-			alignment(handCardList);
-		}
-		if (isField)
-		{
-			alignment(fieldCardList);
-		}
 	}
 
 	public void alignment(List<CardController> cardList)
@@ -180,6 +148,19 @@ public class BattleCardCollection
 		foreach (CardController card in cardList)
 		{
 			card.cardObject.transform.SetAsLastSibling();
+		}
+	}
+
+	public void Update()
+	{
+		foreach (CardController handCard in handCardList)
+		{
+			handCard.Update();
+		}
+
+		foreach (CardController fieldCard in fieldCardList)
+		{
+			fieldCard.Update();
 		}
 	}
 }

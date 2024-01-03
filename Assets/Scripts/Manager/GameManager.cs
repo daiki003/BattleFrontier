@@ -90,7 +90,7 @@ public class GameManager : MonoBehaviour
 	{
 		if (battleMgr != null)
 		{
-			battleMgr.update();
+			battleMgr.Update();
 		}
 	}
 
@@ -238,15 +238,6 @@ public class GameManager : MonoBehaviour
 	}
 
 	// その他 ------------------------------------------------------------------------------------------------------
-	private TutorialService getTutorialService(int tutorialType)
-	{
-		switch (tutorialType)
-		{
-			case 0: return new AttackTutorial();
-			default: return null;
-		}
-	}
-
 	public void setGameSpeed(float speed)
 	{
 		Time.timeScale = speed;

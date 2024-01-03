@@ -27,7 +27,7 @@ public class RecoveryManager
         cardCollection.graveCardList = player.cardCollection.graveCardList.Select(c => c.createSaveComponent()).ToList();
 
         StreamWriter streamWriter = new StreamWriter(createFilePath(fileName));
-		streamWriter.Write(JsonUtility.ToJson(new RecoveryData(player.model, cardCollection)));
+		streamWriter.Write(JsonUtility.ToJson(new RecoveryData(cardCollection)));
 		streamWriter.Flush();
 		streamWriter.Close();
     }
@@ -51,12 +51,10 @@ public class RecoveryManager
 [System.Serializable]
 public class RecoveryData
 {
-    public PlayerModel player;
     public SaveCardCollection cardCollection;
     public RecoveryData() {}
-    public RecoveryData(PlayerModel player, SaveCardCollection saveCardCollection)
+    public RecoveryData(SaveCardCollection saveCardCollection)
     {
-        this.player = player;
         this.cardCollection = saveCardCollection;
     }
 }

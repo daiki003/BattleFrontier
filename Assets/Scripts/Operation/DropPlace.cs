@@ -8,7 +8,6 @@ using System;
 public class DropPlace : MonoBehaviour, IDropHandler
 {
 	public PlayerController player { get { return BattleManager.instance.player; } }
-	[SerializeField] Transform content;
 	public DropType type;
 
 	public void OnDrop(PointerEventData eventData) // ドロップされた時に行う処理
@@ -27,6 +26,13 @@ public class DropPlace : MonoBehaviour, IDropHandler
 
 		switch (type)
 		{
+			case DropType.FLAG:
+				if (GameManager.instance.isBattle)
+				{
+					FlagArea flagArea = GetComponent<FlagArea>();
+					flagArea.DropCard(card);
+				}
+				break;
 			case DropType.CARD:
 				if (GameManager.instance.isBattle)
 				{
