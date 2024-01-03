@@ -12,6 +12,7 @@ public class OnClick : MonoBehaviour, IPointerClickHandler
 
 	public void OnPointerClick(PointerEventData eventData)
 	{
+		var battleMgr = GameManager.instance.battleMgr;
 		switch (type)
 		{
 			case ClickType.CARD:
@@ -35,15 +36,15 @@ public class OnClick : MonoBehaviour, IPointerClickHandler
 					}
 					else
 					{
-						if (card.isHandCard && !BattleManager.instance.player.model.focusHand)
+						if (card.isHandCard && !battleMgr.mainPanel.focusHand)
 						{
-							BattleManager.instance.player.changeFocusHand(true);
+							battleMgr.mainPanel.ChangeFocusHand(true);
 						}
 						else
 						{
 							if (card.isFieldCard)
 							{
-								BattleManager.instance.trainingPhase.strengthenTarget = card;
+								battleMgr.trainingPhase.strengthenTarget = card;
 							}
 							SEManager.instance.playSe("Select");
 							GameManager.instance.showDescribe(card);
@@ -60,9 +61,9 @@ public class OnClick : MonoBehaviour, IPointerClickHandler
 			case ClickType.EXTRA:
 				if (GameManager.instance.isBattle)
 				{
-					if (BattleManager.instance.player != null && !BattleManager.instance.isDescribe && (!BattleManager.instance.isSelect || BattleManager.instance.isCantCancelSelect))
+					if (BattleManager.instance.player != null && !BattleManager.instance.isDescribe)
 					{
-						BattleManager.instance.player.changeFocusHand(false);
+						battleMgr.mainPanel.ChangeFocusHand(false);
 					}
 					BattleManager.instance.onClickExtra();
 				}

@@ -90,69 +90,6 @@ public class ConstCount : CountBase
 	}
 }
 
-public class PpCount : CountBase
-{
-	public PpCount(int multiple = 1, int divide = 1, int divideRoundDown = 1, int surplus = -1) : base(multiple, divide, divideRoundDown, surplus) {}
-	public override int getCount(AbilityProcessor.ActivateOption option = null, AbilityProcessor.ProcessOption processOption = null, int activateCount = 0)
-	{
-		return player.model.cost;
-	}
-}
-
-public class MaxPpCount : CountBase
-{
-	public MaxPpCount(int multiple = 1, int divide = 1, int divideRoundDown = 1, int surplus = -1) : base(multiple, divide, divideRoundDown, surplus) {}
-	public override int getCount(AbilityProcessor.ActivateOption option = null, AbilityProcessor.ProcessOption processOption = null, int activateCount = 0)
-	{
-		return player.model.maxCost;
-	}
-}
-
-public class LeaderHpCount : CountBase
-{
-	public LeaderHpCount(int multiple = 1, int divide = 1, int divideRoundDown = 1, int surplus = -1) : base(multiple, divide, divideRoundDown, surplus) {}
-	public override int getCount(AbilityProcessor.ActivateOption option = null, AbilityProcessor.ProcessOption processOption = null, int activateCount = 0)
-	{
-		return player.model.hp;
-	}
-}
-
-public class ShieldCount : CountBase
-{
-	public ShieldCount(int multiple = 1, int divide = 1, int divideRoundDown = 1, int surplus = -1) : base(multiple, divide, divideRoundDown, surplus) {}
-	public override int getCount(AbilityProcessor.ActivateOption option = null, AbilityProcessor.ProcessOption processOption = null, int activateCount = 0)
-	{
-		return player.model.shield;
-	}
-}
-
-public class TurnPlayCount : CountBase
-{
-	public TurnPlayCount(int multiple = 1, int divide = 1, int divideRoundDown = 1, int surplus = -1) : base(multiple, divide, divideRoundDown, surplus) {}
-	public override int getCount(AbilityProcessor.ActivateOption option = null, AbilityProcessor.ProcessOption processOption = null, int activateCount = 0)
-	{
-		return player.model.turnPlayCount;
-	}
-}
-
-public class TurnDiscardCount : CountBase
-{
-	public TurnDiscardCount(int multiple = 1, int divide = 1, int divideRoundDown = 1, int surplus = -1) : base(multiple, divide, divideRoundDown, surplus) {}
-	public override int getCount(AbilityProcessor.ActivateOption option = null, AbilityProcessor.ProcessOption processOption = null, int activateCount = 0)
-	{
-		return player.model.turnDiscardCount;
-	}
-}
-
-public class TurnDestroyCount : CountBase
-{
-	public TurnDestroyCount(int multiple = 1, int divide = 1, int divideRoundDown = 1, int surplus = -1) : base(multiple, divide, divideRoundDown, surplus) {}
-	public override int getCount(AbilityProcessor.ActivateOption option = null, AbilityProcessor.ProcessOption processOption = null, int activateCount = 0)
-	{
-		return player.model.turnDestroyCount;
-	}
-}
-
 public class ActivatePowerCount : CountBase
 {
 	public ActivatePowerCount(int multiple = 1, int divide = 1, int divideRoundDown = 1, int surplus = -1) : base(multiple, divide, divideRoundDown, surplus) {}
@@ -168,15 +105,6 @@ public class ActivateCount : CountBase
 	public override int getCount(AbilityProcessor.ActivateOption option = null, AbilityProcessor.ProcessOption processOption = null, int activateCount = 0)
 	{
 		return activateCount;
-	}
-}
-
-public class BackWaterCount : CountBase
-{
-	public BackWaterCount(int multiple = 1, int divide = 1, int divideRoundDown = 1, int surplus = -1) : base(multiple, divide, divideRoundDown, surplus) {}
-	public override int getCount(AbilityProcessor.ActivateOption option = null, AbilityProcessor.ProcessOption processOption = null, int activateCount = 0)
-	{
-		return player.model.backWaterCount;
 	}
 }
 

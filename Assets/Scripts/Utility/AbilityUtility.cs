@@ -273,16 +273,8 @@ public class AbilityUtility
 		switch ((CountType)Enum.Parse(typeof(CountType), countType))
 		{
 			// ターゲットが必要ないカウント
-			case CountType.PP: return new PpCount(multiple, divideRoundUp, divideRoundDown, surplus);
-			case CountType.MAX_PP: return new MaxPpCount(multiple, divideRoundUp, divideRoundDown, surplus);
-			case CountType.LEADER_HP: return new LeaderHpCount(multiple, divideRoundUp, divideRoundDown, surplus);
-			case CountType.SHIELD: return new ShieldCount(multiple, divideRoundUp, divideRoundDown, surplus);
-			case CountType.TURN_PLAY_COUNT: return new TurnPlayCount(multiple, divideRoundUp, divideRoundDown, surplus);
-			case CountType.TURN_DISCARD_COUNT: return new TurnDiscardCount(multiple, divideRoundUp, divideRoundDown, surplus);
-			case CountType.TURN_DESTROY_COUNT: return new TurnDestroyCount(multiple, divideRoundUp, divideRoundDown, surplus);
 			case CountType.ACTIVATE_POWER: return new ActivatePowerCount(multiple, divideRoundUp, divideRoundDown, surplus);
 			case CountType.ACTIVATE_COUNT: return new ActivateCount(multiple, divideRoundUp, divideRoundDown, surplus);
-			case CountType.BACK_WATER: return new BackWaterCount(multiple, divideRoundUp, divideRoundDown, surplus);
 
 			// ターゲットが必要なカウント
 			case CountType.CARD_COUNT: return new CardCount(targetText, multiple, divideRoundUp, divideRoundDown, surplus);

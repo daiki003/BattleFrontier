@@ -31,7 +31,7 @@ public class CardController
 	{
 		get
 		{
-			return BattleManager.instance.player.model.focusHand ? focusHandSize : unFocusHandSize;
+			return BattleManager.instance.mainPanel.focusHand ? focusHandSize : unFocusHandSize;
 		}
 	}
 
@@ -114,12 +114,7 @@ public class CardController
 		this.targetArea = area;
         view.changeSize(installedSize);
         ownerCardCollection.removeFromHand(this);
-		ownerCardCollection.addToField(this, area.fieldIndex);
-	}
-
-	public virtual string getSpritePath()
-	{
-		return "Images/Card/BattleFrontier/default";
+		ownerCardCollection.AddToField(this, area.fieldIndex);
 	}
 
 	// 以下現在未使用 -------------------------------------------------------------------------------------------------------------------------------------------------
@@ -138,40 +133,24 @@ public class CardController
 
 	// 破壊などされた時の処理 -----------------------------------------------------------------------------------------------------------------------------
 	// カードが破壊された時の処理
-	public VfxBase destroy()
+	public void destroy()
 	{
-		bool isEnemy = model.isEnemy;
-		ownerCardCollection.addToGrave(this);
-
-		// フィールドから削除する前に、インデックスを保存しておく
-		int fieldIndex = ownerCardCollection.fieldCardList.IndexOf(this);
-		int backIndex = ownerCardCollection.fieldCardList.Count - fieldIndex - 1;
-
-		// フィールドカードから削除
-		ownerCardCollection.removeFromField(this);
-
-		// 場のカードのソウルチャージを溜める
-		if (!isEnemy)
-		{
-			foreach (CardController fieldCard in player.cardCollection.fieldCardList)
-			{
-				fieldCard.model.soulCharge++;
-			}
-		}
-
-		// 破壊された時の能力を発動
-		abilityProcessor.addComponent(AbilityTiming.WHEN_DESTROY, this, fieldIndex: fieldIndex, backIndex: backIndex);
-		// 破壊に反応して誘発する能力の発動
-		if (model.cardType != CardType.SPELL)
-		{
-			abilityProcessor.addPursuitComponentSingleActivateCard(AbilityTiming.WHEN_DESTROY_OTHER, this, isEnemy: isEnemy);
-			abilityProcessor.addPursuitComponentSingleActivateCard(AbilityTiming.WHEN_LEAVE_OTHER, this, isEnemy: isEnemy);
-		}
+		ownerCardCollection.removeFromHand(this);
+		ownerCardCollection.AddToGrave(this);
 
 		// カードテキスト更新
 		player.updateCardText();
+		DestroyVfx destroyVfx = new DestroyVfx(this);
+		destroyVfx.addToAllBlockList();
+	}
 
-		return new DestroyVfx(this);
+	public void ReturnToDeck()
+	{
+		ownerCardCollection.removeFromHand(this);
+		ownerCardCollection.AddToDeckTop(this);
+
+		AddToDeckVfx addToDeckVfx = new AddToDeckVfx(new List<CardController>(){ this });
+		addToDeckVfx.addToAllBlockList();
 	}
 
 	// カードが交換されたときの処理
@@ -204,15 +183,8 @@ public class CardController
 	// プレイ可能な状態かどうかを判定
 	public bool canPlay()
 	{
-		if (model == null) return false;
-		// 敵のターン中はプレイ不可
-		if (!BattleManager.instance.canOperationCard) return false;
-		// 敵のカードはプレイ不可
-		if (model.isEnemy) return false;
-
-		return !BattleManager.instance.stopPlayFlag
-			&& isHandCard
-			&& BattleManager.instance.canPlayCard;
+		var battleMgr = BattleManager.instance;
+		return !battleMgr.stopPlayFlag && isHandCard && battleMgr.canOperationCard && battleMgr.selectPanel.currentPhase != SelectPhase.DRAW;
 	}
 
 	// 交換可能な状態かどうかを判定
@@ -227,13 +199,6 @@ public class CardController
 		if (model == null || model.isEnemy) return false;
 
 		return isHandCard;
-	}
-
-	// 有効な選択スキルを返す
-	public SelectComponent getValidSelectComponent(AbilityTiming timing)
-	{
-		// 選択要素は1タイミングにつき1つの想定
-		return model.selectComponent.FirstOrDefault(s => s.selectTiming == timing && s.selectCondition.All(c => c.judgeCondition()));
 	}
 
 	// カードをプレイしたときの処理 --------------------------------------------------------------------------------------------------------------
@@ -260,9 +225,8 @@ public class CardController
 		}
 		else
 		{
-			VfxBase destroyVfx = this.destroy();
-			destroyVfx.addToAllBlockList();
-			ownerCardCollection.addToGrave(this);
+			this.destroy();
+			ownerCardCollection.AddToGrave(this);
 		}
 		// プレイする時にコスト変化情報はリセット
 		model.applyInformation.eternalApplyValue.costChange = 0;
@@ -275,18 +239,6 @@ public class CardController
 		abilityProcessor.addPursuitComponentSingleActivateCard(AbilityTiming.WHEN_PLAY_OTHER, this, selectedCard: selectCard);
 		abilityProcessor.activateComponent();
 		player.updateCardText();
-
-		// 使うか検討中なので一旦コメントアウト
-		// 同名カードをプレイしたときに自動で強化する処理
-		// CardController sameIdCard = ownerCardCollection.fieldCardList.FirstOrDefault(c => c.model.cardId == this.model.cardId && c != this && !c.model.isEvolve);
-		// if (sameIdCard != null && !sameIdCard.haveCardProperty<CantEvolveProperty>())
-		// {
-		// 	// ToDo プレイしたカードと同名の未強化のカードが場にいる場合、そのカードを強化してプレイしたカードは破壊される
-		// 	// 強化時効果は発動しない
-		// 	VfxBase destroyVfx = this.disappear();
-		// 	destroyVfx.addToAllBlockList();
-		// 	sameIdCard.evolve(activateWhenPlay: false);
-		// }
 	}
 
 	// カードが場に出た時の処理
@@ -298,5 +250,10 @@ public class CardController
 			abilityProcessor.addComponent(AbilityTiming.WHEN_SUMMON, this);
 			abilityProcessor.addPursuitComponentSingleActivateCard(AbilityTiming.WHEN_SUMMON_OTHER, this, isEnemy: model.isEnemy);
 		}
+	}
+
+	public void Update()
+	{
+		view.activeCursor.SetActive(canPlay() && BattleManager.instance.movingCard == null);
 	}
 }

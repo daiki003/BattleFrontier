@@ -122,14 +122,6 @@ public class AbilityProcessor
 		if (activateCard == null) activateCard = new List<CardController>();
 		// リーダーの能力
 		addComponent(timing, activateCard: activateCard);
-		// スキルの能力
-		foreach (SkillPanelController skill in battleMgr.player.model.skillList)
-		{
-			if (skill.model.isActive)
-			{
-				addComponent(timing, ownerSkill: skill, activateCard: activateCard, selectCard: selectedCard, activatePower: activatePower, insert: insert);
-			}
-		}
 
 		// 場の能力
 		List<CardController> fieldCardList = new List<CardController>();
@@ -216,15 +208,18 @@ public class AbilityProcessor
 		List<AbilityController> abilityList;
 		if (option.ownerCard != null) abilityList = new List<AbilityController>(option.ownerCard.model.allAbilityList.Where(a => a.abilityTrait.timing == timing.ToString().ToLower()));
 		else if (option.ownerSkill != null) abilityList = new List<AbilityController>(option.ownerSkill.model.abilityList.Where(a => a.abilityTrait.timing == timing.ToString().ToLower()));
-		else abilityList = battleMgr.player.model.abilityList.FindAll(ability => ability.abilityTrait.timing == timing.ToString().ToLower());
+		else abilityList = null;
 		return checkAbilityValidity(abilityList, option);
 	}
 	public List<AbilityController> checkAbilityValidity(List<AbilityController> abilityList, ActivateOption option)
 	{
 		List<AbilityController> validAbilityList = new List<AbilityController>();
-		foreach (AbilityController ability in abilityList)
+		if (abilityList != null)
 		{
-			if (ability.judgeCondition(option)) validAbilityList.Add(ability);
+			foreach (AbilityController ability in abilityList)
+			{
+				if (ability.judgeCondition(option)) validAbilityList.Add(ability);
+			}
 		}
 		return validAbilityList;
 	}

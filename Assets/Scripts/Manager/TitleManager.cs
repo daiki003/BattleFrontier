@@ -55,12 +55,6 @@ public class TitleManager : MonoBehaviour
 		GameManager.instance.StartTestBattle();
 	}
 
-	public void startTutorialButton(int tutorialType)
-	{
-		TutorialService tutorialService = getTutorialService(tutorialType);
-		// StartCoroutine(gameMgr.startCreateDeck(deckNumber, category, selectingLevel, tutorialService: tutorialService));
-	}
-
 	// 「デッキ作成」ボタン
 	public void openClassSelect(bool toBattle)
 	{
@@ -189,16 +183,6 @@ public class TitleManager : MonoBehaviour
 		foreach (PanelPrefab panel in titlePrefabs)
 		{
 			panel.onClickExtra();
-		}
-	}
-
-	// その他 ------------------------------------------------------------------------------------------------------
-	private TutorialService getTutorialService(int tutorialType)
-	{
-		switch (tutorialType)
-		{
-			case 0: return new AttackTutorial();
-			default: return null;
 		}
 	}
 

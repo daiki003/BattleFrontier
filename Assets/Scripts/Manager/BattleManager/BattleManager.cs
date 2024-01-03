@@ -7,6 +7,15 @@ using UnityEngine.UI;
 using System.Linq;
 using DG.Tweening;
 
+public enum SpecialCardType
+{
+	JOKER,
+	WILD_SEVEN,
+	FOG,
+	MAD,
+	SCOUT
+}
+
 public class BattleManager
 {
 	public BattleMainPanel mainPanel;
@@ -24,9 +33,6 @@ public class BattleManager
 	// カードプレイ中か、プレイ可能かを判定
 	public bool stopPlayFlag;
 
-	// チュートリアル中かどうかを判定
-	public bool isTutorial;
-
 	// 操作可能な時か判定
 	public bool canOperationCard;
 	// 操作可能な時か判定
@@ -37,24 +43,6 @@ public class BattleManager
 	public CardController movingCard;
 	public const int FLAG_AREA_NUMBER = 9;
 
-	// ターンエンド可能かどうか
-	public bool canTurnEnd
-	{
-		get
-		{
-			return !isTutorial || tutorialService.canTurnEnd;
-		}
-	}
-
-	// カードプレイ可能かどうか
-	public bool canPlayCard
-	{
-		get
-		{
-			return !isTutorial || tutorialService.canPlayCard;
-		}
-	}
-
 	// 選択中かどうか
 	public bool isSelect
 	{
@@ -64,18 +52,25 @@ public class BattleManager
 		}
 	}
 
-	// キャンセルできない選択中かどうか
-	public bool isCantCancelSelect
+	public bool canDraw
 	{
 		get
 		{
-			return selectPanel.selectType != SelectType.SELECT_BONUS;
+			return player.cardCollection.handCardList.Count < 7 || selectPanel.currentPhase == SelectPhase.DRAW;
+		}
+	}
+
+	public bool canTurnEnd
+	{
+		get
+		{
+			return canOperationCard && (player.cardCollection.handCardList.Count == 7 || isTestBattle);
 		}
 	}
 
 	// 説明表示中かどうか
 	public bool isDescribe { get { return describeAreaController.isDescribe; } }
-	private List<Color> cardColorList = new List<Color>()
+	public List<Color> cardColorList = new List<Color>()
 	{
 		Color.red,
 		Color.blue,
@@ -87,7 +82,6 @@ public class BattleManager
 
 	// 各クラスを保持
 	[NonSerialized] public AbilityProcessor mainAbilityProcessor;
-	[NonSerialized] public TutorialService tutorialService;
 	[NonSerialized] public List<FlagArea> flagAreaList = new List<FlagArea>();
 
 	// 生成したバトルプレファブを保持
@@ -110,6 +104,7 @@ public class BattleManager
 		this.isTestBattle = isTestBattle;
 		instance = this;
 		mainPanel = PrefabManager.instance.createBattleMainPanel(GameManager.instance.mainCanvas);
+		mainPanel.battleMgr = this;
 		mainPanel.transform.SetSiblingIndex(GameManager.panelPrefabIndex);
 
 		var selfFirstDrawIndex = new List<int>();
@@ -150,15 +145,11 @@ public class BattleManager
 		selectPanel.start(this);
 	}
 
-	public void update()
+	public void Update()
 	{
 		if (Input.GetKeyDown(KeyCode.F1))
 		{
 			GameManager.instance.debugMgr.openDebugMenu();
-		}
-		if (Input.GetKeyDown(KeyCode.P))
-		{
-			GameManager.instance.debugMgr.setPpMax();
 		}
 
 		if (GameManager.instance.coroutineProcessor.allVfxList.Count > 0 && !GameManager.instance.coroutineProcessor.processing)
@@ -166,15 +157,9 @@ public class BattleManager
 			GameManager.instance.coroutineProcessor.startProcess();
 		}
 
-		// チュートリアルの場合、次のフェーズに移れるかを常に判定する
-		if (isTutorial)
-		{
-			tutorialService.update();
-		}
-
 		if (player != null)
 		{
-			player.update();
+			player.Update();
 		}
 		if (selectPanel != null)
 		{
@@ -186,7 +171,7 @@ public class BattleManager
 		}
 		if (mainPanel != null)
 		{
-			mainPanel.update();
+			mainPanel.update(canDraw, canTurnEnd, enemy.cardCollection.handCardList.Count.ToString());
 		}
 	}
 
@@ -203,11 +188,7 @@ public class BattleManager
 		GameManager.instance.coroutineProcessor.clearCoroutineBlock();
 
 		// 盤面、手札、デッキ、敵データのリセット
-		mainPanel.waitArea.resetCard();
-		mainPanel.playArea.resetCard();
-		mainPanel.center.resetCard();
-		mainPanel.invisibleArea.resetCard();
-		mainPanel.banishArea.resetCard();
+		mainPanel.StartBattle();
 
 		normalDeckCardList = new List<CardController>();
 		int index = 0;
@@ -222,19 +203,15 @@ public class BattleManager
 		}
 
 		specialDeckCardList = new List<CardController>();
-		CardController jokerCard = PrefabManager.instance.CreateSpecialCard("joker", 1, BattleManager.instance.mainPanel.invisibleArea);
-		specialDeckCardList.Add(jokerCard);
-		CardController wildSeven = PrefabManager.instance.CreateSpecialCard("wild_seven", 2, BattleManager.instance.mainPanel.invisibleArea);
-		specialDeckCardList.Add(wildSeven);
-		CardController fog = PrefabManager.instance.CreateSpecialCard("fog", 3, BattleManager.instance.mainPanel.invisibleArea);
-		specialDeckCardList.Add(fog);
-		CardController mad = PrefabManager.instance.CreateSpecialCard("mad", 4, BattleManager.instance.mainPanel.invisibleArea);
-		specialDeckCardList.Add(mad);
+		int specialIndex = 0;
+		foreach (var type in Enum.GetValues(typeof(SpecialCardType)))
+		{
+			specialIndex++;
+			specialDeckCardList.Add(PrefabManager.instance.CreateSpecialCard((SpecialCardType)type, specialIndex, BattleManager.instance.mainPanel.invisibleArea));
+		}
 
 		player.battleStart();
 		enemy.battleStart();
-
-		mainPanel.SetUpField();
 
 		// 再開用データはここで作る
 		recordRecoveryData();
@@ -317,14 +294,7 @@ public class BattleManager
 	}
 
 	public void onClickTurnEnd()
-	{
-		if (isSelect)
-		{
-			BattleManager.instance.onClickExtra();
-			return;
-		}
-		if (!canTurnEnd) return;
-		
+	{		
 		// ターン終了ボタンを押した時点で再開データを更新
 		recordRecoveryData();
 		// 相手にターン終了を通知
@@ -390,15 +360,13 @@ public class BattleManager
 		return false;
 	}
 
-	// カード表示関連 -------------------------------------------------------------------------------------------------------------------------------
-	// プレイ領域を一時的に触れるようにする
-	public void setOnPlay(bool active)
+	public List<NormalCard> GetDeckAndHandNormalCardList()
 	{
-		// CanvasGroup onplayCanvas = mainPanel.onplay.GetComponent<CanvasGroup>();
-		// onplayCanvas.blocksRaycasts = active;
-
-		// CanvasGroup onsoldCanvas = mainPanel.onsold.GetComponent<CanvasGroup>();
-		// onsoldCanvas.blocksRaycasts = active;
+		var deckAndHandCardList = new List<NormalCard>();
+		deckAndHandCardList.AddRange(normalDeckCardList.Where(c => c is NormalCard normalCard).Select(c => c as NormalCard));
+		deckAndHandCardList.AddRange(player.cardCollection.handCardList.Where(c => c is NormalCard normalCard).Select(c => c as NormalCard));
+		deckAndHandCardList.AddRange(enemy.cardCollection.handCardList.Where(c => c is NormalCard normalCard).Select(c => c as NormalCard));
+		return deckAndHandCardList;
 	}
 
 	// 説明関連 ----------------------------------------------------------------------------------------------------
@@ -434,6 +402,19 @@ public class BattleManager
 	public void recordRecoveryData(string fileName = "")
 	{
 		GameManager.instance.recoveryManager.createRecoveryData(player, fileName);
+	}
+
+	// BattleMainPanelからの入力 -----------------------------------------------------------------------------------------------------
+	public void DrawCard(bool isSpecial)
+	{
+		if (canDraw)
+        {
+            player.drawCard(1, isSpecial);
+            if (selectPanel.currentPhase == SelectPhase.DRAW)
+            {
+				selectPanel.AdvancePhase();
+            }
+        }
 	}
 }
 
